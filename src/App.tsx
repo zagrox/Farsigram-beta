@@ -1,0 +1,93 @@
+import React, { useState, useEffect } from 'react';
+import { Page, Theme } from './types';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import HomePage from './pages/HomePage';
+import CampaignsPage from './pages/CampaignsPage';
+import CulturalHubPage from './pages/CulturalHubPage';
+import ExplorePage from './pages/ExplorePage';
+import MarketplacePage from './pages/MarketplacePage';
+import MessagesPage from './pages/MessagesPage';
+import NotificationsPage from './pages/NotificationsPage';
+import ProfilePage from './pages/ProfilePage';
+import i18n from './i18n';
+
+const App: React.FC = () => {
+  const [theme, setTheme] = useState<Theme>(Theme.Dark);
+  const [currentPage, setCurrentPage] = useState<Page>(Page.Home);
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [language, setLanguage] = useState(i18n.language);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === Theme.Dark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    const handleLanguageChange = (lng: string) => {
+      document.documentElement.lang = lng;
+      document.documentElement.dir = i18n.dir(lng);
+      setLanguage(lng); // Force re-render on language change
+    };
+
+    i18n.on('languageChanged', handleLanguageChange);
+    handleLanguageChange(i18n.language); // Set initial direction
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, []);
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case Page.Home:
+        return <HomePage />;
+      case Page.Campaigns:
+        return <CampaignsPage />;
+      case Page.CulturalHub:
+        return <CulturalHubPage />;
+      case Page.Explore:
+        return <ExplorePage />;
+      case Page.Marketplace:
+        return <MarketplacePage />;
+      case Page.Messages:
+        return <MessagesPage />;
+      case Page.Notifications:
+        return <NotificationsPage />;
+      case Page.Profile:
+        return <ProfilePage />;
+      default:
+        return <HomePage />;
+    }
+  };
+
+  const contentPositionClass = i18n.dir() === 'rtl'
+    ? (isSidebarCollapsed ? 'right-20 left-0' : 'right-64 left-0')
+    : (isSidebarCollapsed ? 'left-20 right-0' : 'left-64 right-0');
+
+  return (
+    <div className="relative min-h-screen bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 font-sans">
+      <Sidebar 
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        isCollapsed={isSidebarCollapsed}
+        setSidebarCollapsed={setSidebarCollapsed}
+      />
+      <div className={`absolute top-0 bottom-0 flex flex-col transition-all duration-300 ${contentPositionClass}`}>
+        <Header 
+          theme={theme}
+          setTheme={setTheme}
+        />
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
+          {renderPage()}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default App;

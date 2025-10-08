@@ -1,0 +1,21 @@
+{
+  "name": "farsigram",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Farsigram is an innovative digital platform aiming to be the ultimate hub for connecting Farsi-speaking individuals, businesses, and creators worldwide.",
+  "main": "src/index.tsx",
+  "scripts": {
+    "start": "echo \"Start script not implemented\"",
+    "build": "echo \"Build script not implemented\""
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "i18next": "^23.11.2",
+    "react-i18next": "^14.1.0",
+    "i18next-http-backend": "^2.5.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}
