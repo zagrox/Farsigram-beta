@@ -9,5 +9,7 @@
   "profile": "Profile",
   "searchInputPlaceholder": "Search campaigns, creators, products...",
   "toggleLanguage": "Toggle Language",
-  "toggleTheme": "Toggle Theme"
+  "toggleTheme": "Toggle Theme",
+  "expandSidebar": "Expand sidebar",
+  "collapseSidebar": "Collapse sidebar"
 }

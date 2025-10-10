@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import Button from '../components/ui/Button';
 
 const CampaignsPage: React.FC = () => {
   const { t } = useTranslation('campaigns');
@@ -13,9 +14,9 @@ const CampaignsPage: React.FC = () => {
       <div className="bg-white dark:bg-neutral-800/50 p-8 rounded-xl shadow-md text-center">
         <h2 className="text-xl font-semibold">{t('comingSoonTitle')}</h2>
         <p className="mt-2 text-neutral-500 dark:text-neutral-400">{t('comingSoonDescription')}</p>
-        <button className="mt-6 bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark transition-colors">
+        <Button>
           {t('createButton')}
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,15 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-
-const Card: React.FC<{ title: string; description: string; imageUrl: string }> = ({ title, description, imageUrl }) => (
-  <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-    <img className="h-48 w-full object-cover" src={imageUrl} alt={title} />
-    <div className="p-6">
-      <div className="uppercase tracking-wide text-sm text-primary font-semibold">{title}</div>
-      <p className="mt-2 text-neutral-500 dark:text-neutral-400">{description}</p>
-    </div>
-  </div>
-);
+import Card from '../components/ui/Card';
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation('home');

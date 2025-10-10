@@ -1,13 +1,15 @@
 {
-  "homeFeed": "فید اصلی",
-  "campaigns": "کمپین‌ها",
-  "culturalHub": "مرکز فرهنگی",
+  "homeFeed": "صفحه اول",
+  "campaigns": "پویش‌ها",
+  "culturalHub": "فرهنگ",
   "explore": "کاوش",
   "marketplace": "بازار",
-  "messages": "پیام‌ها",
+  "messages": "چاپار",
   "notifications": "اعلان‌ها",
   "profile": "پروفایل",
   "searchInputPlaceholder": "جستجوی کمپین‌ها، سازندگان، محصولات...",
   "toggleLanguage": "تغییر زبان",
-  "toggleTheme": "تغییر تم"
+  "toggleTheme": "تغییر تم",
+  "expandSidebar": "باز کردن نوار کناری",
+  "collapseSidebar": "بستن نوار کناری"
 }

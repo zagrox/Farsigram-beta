@@ -15,9 +15,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isCollap
   const { t, i18n } = useTranslation('common');
   const isRtl = i18n.dir() === 'rtl';
 
+  const buttonPositionClass = isCollapsed
+    ? 'left-1/2 -translate-x-1/2 -top-3'
+    : (isRtl ? 'left-4 -top-3' : 'right-4 -top-3');
+
   return (
-    <aside className={`fixed top-0 h-full bg-white dark:bg-neutral-950 flex flex-col transition-all duration-300 z-10 ${isCollapsed ? 'w-20' : 'w-64'} ${isRtl ? 'right-0 border-l' : 'left-0 border-r'} border-neutral-200 dark:border-neutral-800`}>
-      <div className={`flex items-center border-b border-neutral-200 dark:border-neutral-800 transition-all duration-300 ${isCollapsed ? 'h-20 justify-center' : 'h-20 px-6'}`}>
+    <aside className={`fixed top-0 h-full bg-white dark:bg-neutral-950 flex flex-col transition-all duration-300 z-10 ${isCollapsed ? 'w-20' : 'w-64'} ${isRtl ? 'right-0' : 'left-0'}`}>
+      <div className={`flex items-center transition-all duration-300 ${isCollapsed ? 'h-20 justify-center' : 'h-20 px-6'}`}>
         <FarsigramIcon className="h-8 w-8 text-primary" />
         {!isCollapsed && <span className={`${isRtl ? 'mr-3' : 'ml-3'} text-2xl font-bold text-neutral-800 dark:text-neutral-100`}>Farsigram</span>}
       </div>
@@ -43,7 +47,17 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isCollap
         ))}
       </nav>
 
-      <div className="px-4 py-6 border-t border-neutral-200 dark:border-neutral-800">
+      <div className="px-4 py-6 border-t border-neutral-200 dark:border-neutral-800 relative">
+        <button 
+          onClick={() => setSidebarCollapsed(!isCollapsed)} 
+          className={`absolute h-6 w-6 bg-white dark:bg-neutral-950 border-2 border-neutral-200 dark:border-neutral-800 rounded-full flex items-center justify-center text-neutral-500 hover:text-primary transition-colors z-20 ${buttonPositionClass}`}
+          aria-label={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
+        >
+          {isRtl ? 
+              (isCollapsed ? <ChevronLeftIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />) :
+              (isCollapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />)
+          }
+        </button>
         <a
           href="#"
           onClick={(e) => {
@@ -60,16 +74,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isCollap
           {!isCollapsed && <span className={`${isRtl ? 'mr-4' : 'ml-4'} font-medium`}>{t('profile')}</span>}
         </a>
       </div>
-
-       <button 
-        onClick={() => setSidebarCollapsed(!isCollapsed)} 
-        className={`absolute top-20 h-6 w-6 bg-white dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 rounded-full flex items-center justify-center text-neutral-500 hover:text-primary transition-colors ${isRtl ? '-left-3' : '-right-3'}`}
-      >
-        {isRtl ? 
-            (isCollapsed ? <ChevronLeftIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />) :
-            (isCollapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />)
-        }
-      </button>
     </aside>
   );
 };

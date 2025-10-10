@@ -13,9 +13,17 @@ import ProfilePage from './pages/ProfilePage';
 import i18n from './i18n';
 
 const App: React.FC = () => {
-  const [theme, setTheme] = useState<Theme>(Theme.Dark);
+  const [theme, setTheme] = useState<Theme>(() => {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme) {
+      return storedTheme === 'dark' ? Theme.Dark : Theme.Light;
+    }
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches
+      ? Theme.Dark
+      : Theme.Light;
+  });
   const [currentPage, setCurrentPage] = useState<Page>(Page.Home);
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState<boolean>(true);
   const [language, setLanguage] = useState(i18n.language);
 
   useEffect(() => {
@@ -26,6 +34,23 @@ const App: React.FC = () => {
       root.classList.remove('dark');
     }
   }, [theme]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      // Only update theme if user hasn't made a manual choice
+      if (!localStorage.getItem('theme')) {
+        setTheme(e.matches ? Theme.Dark : Theme.Light);
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, []);
 
   useEffect(() => {
     const handleLanguageChange = (lng: string) => {
@@ -41,6 +66,11 @@ const App: React.FC = () => {
       i18n.off('languageChanged', handleLanguageChange);
     };
   }, []);
+
+  const setThemeAndStore = (newTheme: Theme) => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme === Theme.Dark ? 'dark' : 'light');
+  };
 
   const renderPage = () => {
     switch (currentPage) {
@@ -80,7 +110,7 @@ const App: React.FC = () => {
       <div className={`absolute top-0 bottom-0 flex flex-col transition-all duration-300 ${contentPositionClass}`}>
         <Header 
           theme={theme}
-          setTheme={setTheme}
+          setTheme={setThemeAndStore}
         />
         <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
           {renderPage()}

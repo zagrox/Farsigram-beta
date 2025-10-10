@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Theme } from '../types';
 import { SunIcon, MoonIcon, SearchIcon } from './Icons';
+import Input from './ui/Input';
 
 interface HeaderProps {
   theme: Theme;
@@ -22,14 +23,12 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme }) => {
 
   return (
     <header className="flex-shrink-0 h-20 bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between px-6 lg:px-8">
-      <div className="relative w-full max-w-md">
-        <div className="absolute inset-y-0 left-0 rtl:right-0 rtl:left-auto pl-3 rtl:pr-3 rtl:pl-0 flex items-center pointer-events-none">
-          <SearchIcon className="h-5 w-5 text-neutral-400" />
-        </div>
-        <input
+      <div className="w-full max-w-md">
+        <Input
           type="text"
           placeholder={t('searchInputPlaceholder')}
-          className="w-full bg-neutral-100 dark:bg-neutral-800 border border-transparent rounded-lg py-2 pl-10 pr-4 rtl:pr-10 rtl:pl-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
+          icon={<SearchIcon className="h-5 w-5 text-neutral-400" />}
+          isRtl={i18n.dir() === 'rtl'}
         />
       </div>
       <div className="flex items-center space-x-4">
