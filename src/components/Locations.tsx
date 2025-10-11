@@ -48,7 +48,7 @@ const CountryCard: React.FC<{ country: CombinedCountryData }> = ({ country }) =>
       </div>
       <div className="p-3">
         <div className="flex justify-between items-baseline gap-2">
-          <h3 className="font-bold text-neutral-900 dark:text-neutral-100 truncate" title={country.commonName}>
+          <h3 className="font-bold text-lg text-neutral-900 dark:text-neutral-100 truncate" title={country.commonName}>
             {country.commonName}
           </h3>
           <h4 className="text-sm font-medium text-primary flex-shrink-0">

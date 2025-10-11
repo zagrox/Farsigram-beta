@@ -1,6 +1,5 @@
 {
   "title": "Explore",
-  "subtitle": "Discover influencers, brands, communities, and content from across the globe.",
   "loadingLocations": "Loading locations...",
   "errorLoadingLocations": "Failed to load locations. Please try again later."
 }

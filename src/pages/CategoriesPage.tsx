@@ -81,11 +81,6 @@ const CategoriesPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">{t('title')}</h1>
-        <p className="mt-2 text-lg text-neutral-600 dark:text-neutral-400">{t('subtitle')}</p>
-      </div>
-      
       {loading && <p className="text-center text-neutral-500 dark:text-neutral-400">{t('loading')}</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
@@ -113,7 +108,7 @@ const CategoriesPage: React.FC = () => {
                    </div>
                 )}
                 <h3 
-                  className="text-lg font-bold"
+                  className="text-xl font-bold"
                   style={{ color: parent.category_color || 'inherit' }}
                 >
                   {parent.category_parent}

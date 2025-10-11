@@ -10,10 +10,10 @@ export interface NavItem {
 
 export const NAVIGATION_ITEMS: NavItem[] = [
   { id: Page.Home, label: 'homeFeed', icon: <HomeIcon /> },
+  { id: Page.Categories, label: 'categories', icon: <CategoryIcon /> },
+  { id: Page.Explore, label: 'explore', icon: <ExploreIcon /> },
   { id: Page.Campaigns, label: 'campaigns', icon: <CampaignIcon /> },
   { id: Page.CulturalHub, label: 'culturalHub', icon: <CultureIcon /> },
-  { id: Page.Explore, label: 'explore', icon: <ExploreIcon /> },
-  { id: Page.Categories, label: 'categories', icon: <CategoryIcon /> },
   { id: Page.Marketplace, label: 'marketplace', icon: <MarketplaceIcon /> },
   { id: Page.Messages, label: 'messages', icon: <MessageIcon /> },
   { id: Page.Notifications, label: 'notifications', icon: <NotificationIcon /> },
