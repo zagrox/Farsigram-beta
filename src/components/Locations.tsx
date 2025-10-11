@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import MapComponent from './MapComponent';
 
 // --- TYPE DEFINITIONS ---
 
@@ -19,6 +20,7 @@ interface RestCountry {
     png: string;
   };
   population: number;
+  latlng: [number, number];
 }
 
 interface CombinedCountryData {
@@ -28,6 +30,7 @@ interface CombinedCountryData {
   commonName: string;
   flagUrl: string;
   population: number;
+  latlng: [number, number];
 }
 
 // --- SUB-COMPONENTS ---
@@ -35,7 +38,7 @@ interface CombinedCountryData {
 const CountryCard: React.FC<{ country: CombinedCountryData }> = ({ country }) => {
   return (
     <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-      <div className="aspect-video bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+      <div className="aspect-[16/10] bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
         <img 
           className="h-full w-full object-cover" 
           src={country.flagUrl} 
@@ -43,12 +46,15 @@ const CountryCard: React.FC<{ country: CombinedCountryData }> = ({ country }) =>
           loading="lazy"
         />
       </div>
-      <div className="p-4">
-        <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100 truncate">{country.commonName}</h3>
-        <h4 className="text-md font-medium text-primary">{country.persianName}</h4>
-        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-          Population: {country.population.toLocaleString()}
-        </p>
+      <div className="p-3">
+        <div className="flex justify-between items-baseline gap-2">
+          <h3 className="font-bold text-neutral-900 dark:text-neutral-100 truncate" title={country.commonName}>
+            {country.commonName}
+          </h3>
+          <h4 className="text-sm font-medium text-primary flex-shrink-0">
+            {country.persianName}
+          </h4>
+        </div>
       </div>
     </div>
   );
@@ -56,11 +62,9 @@ const CountryCard: React.FC<{ country: CombinedCountryData }> = ({ country }) =>
 
 const LoadingSkeleton: React.FC = () => (
     <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden animate-pulse">
-        <div className="aspect-video bg-neutral-200 dark:bg-neutral-700"></div>
-        <div className="p-4">
-            <div className="h-5 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2 mb-3"></div>
-            <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-2/3"></div>
+        <div className="aspect-[16/10] bg-neutral-200 dark:bg-neutral-700"></div>
+        <div className="p-3">
+            <div className="h-5 bg-neutral-200 dark:bg-neutral-700 rounded w-full"></div>
         </div>
     </div>
 );
@@ -94,7 +98,7 @@ const Locations: React.FC = () => {
         const combinedData = locations
           .map((loc, index) => {
             const detail = detailsResults[index]?.[0] as RestCountry | undefined;
-            if (!detail) return null;
+            if (!detail || !detail.latlng) return null;
 
             return {
               id: loc.id,
@@ -103,6 +107,7 @@ const Locations: React.FC = () => {
               commonName: detail.name.common,
               flagUrl: detail.flags.svg,
               population: detail.population,
+              latlng: detail.latlng,
             };
           })
           .filter((item): item is CombinedCountryData => item !== null);
@@ -127,12 +132,41 @@ const Locations: React.FC = () => {
     );
   }
 
+  // Loading state with split-screen skeleton
+  if (loading) {
+    return (
+      <div className="flex flex-col lg:flex-row-reverse lg:gap-8">
+        {/* Map Skeleton */}
+        <div className="lg:w-1/2">
+          <div className="h-[400px] lg:h-[calc(100vh-10rem)] mb-8 lg:mb-0 bg-neutral-200 dark:bg-neutral-700 rounded-xl animate-pulse"></div>
+        </div>
+        {/* List Skeleton */}
+        <div className="lg:w-1/2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 9 }).map((_, i) => <LoadingSkeleton key={i} />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {loading 
-        ? Array.from({ length: 8 }).map((_, i) => <LoadingSkeleton key={i} />)
-        : countries.map(country => <CountryCard key={country.id} country={country} />)
-      }
+    <div className="flex flex-col lg:flex-row-reverse lg:gap-8">
+      {/* Map Column (Right side on desktop) */}
+      <div className="lg:w-1/2">
+        {countries.length > 0 &&
+          <div className="h-[400px] lg:h-[calc(100vh-10rem)] lg:sticky lg:top-8 mb-8 lg:mb-0 bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden">
+            <MapComponent countries={countries} />
+          </div>
+        }
+      </div>
+      
+      {/* Country List Column (Left side on desktop) */}
+      <div className="lg:w-1/2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {countries.map(country => <CountryCard key={country.id} country={country} />)}
+        </div>
+      </div>
     </div>
   );
 };
