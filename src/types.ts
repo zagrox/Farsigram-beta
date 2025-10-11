@@ -3,6 +3,7 @@ export enum Page {
   Campaigns,
   CulturalHub,
   Explore,
+  Categories,
   Marketplace,
   Messages,
   Notifications,

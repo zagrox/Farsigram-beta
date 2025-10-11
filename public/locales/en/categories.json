@@ -1,0 +1,7 @@
+{
+  "title": "Categories",
+  "subtitle": "Explore content by browsing through various categories and interests.",
+  "loading": "Loading categories...",
+  "error": "Failed to load categories. Please try again later.",
+  "noSubcategories": "No subcategories"
+}

@@ -1,6 +1,6 @@
 {
   "title": "Explore",
   "subtitle": "Discover influencers, brands, communities, and content from across the globe.",
-  "comingSoonTitle": "Discover Your Next Connection",
-  "comingSoonDescription": "Our advanced discovery tools are being built. Soon you'll be able to find exactly who and what you're looking for."
+  "loadingLocations": "Loading locations...",
+  "errorLoadingLocations": "Failed to load locations. Please try again later."
 }

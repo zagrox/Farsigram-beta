@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import CampaignsPage from './pages/CampaignsPage';
 import CulturalHubPage from './pages/CulturalHubPage';
 import ExplorePage from './pages/ExplorePage';
+import CategoriesPage from './pages/CategoriesPage';
 import MarketplacePage from './pages/MarketplacePage';
 import MessagesPage from './pages/MessagesPage';
 import NotificationsPage from './pages/NotificationsPage';
@@ -82,6 +83,8 @@ const App: React.FC = () => {
         return <CulturalHubPage />;
       case Page.Explore:
         return <ExplorePage />;
+      case Page.Categories:
+        return <CategoriesPage />;
       case Page.Marketplace:
         return <MarketplacePage />;
       case Page.Messages:

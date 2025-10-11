@@ -6,6 +6,7 @@ export {
   MegaphoneIcon as CampaignIcon,
   SparklesIcon as CultureIcon,
   GlobeEuropeAfricaIcon as ExploreIcon,
+  Squares2X2Icon as CategoryIcon,
   ShoppingBagIcon as MarketplaceIcon,
   ChatBubbleOvalLeftEllipsisIcon as MessageIcon,
   BellIcon as NotificationIcon,

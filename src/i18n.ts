@@ -14,6 +14,7 @@ i18n
       'campaigns',
       'culturalhub',
       'explore',
+      'categories',
       'marketplace',
       'messages',
       'notifications',
