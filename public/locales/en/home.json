@@ -1,15 +1,24 @@
 {
   "title": "For You",
-  "featuredCreatorTitle": "Featured Creator",
-  "featuredCreatorDescription": "Discover the vibrant art of a rising star in the Farsi creative community.",
+  "creatorSpotlightTitle": "Creator Spotlight",
+  "creatorSpotlightDescription": "Discover the vibrant art of a rising star in the Farsi creative community.",
+  "creatorSpotlightButton": "View Profile",
+
+  "exploreSectionTitle": "Explore Our Communities",
+  "campaignSectionTitle": "Featured Campaign",
   "trendingCampaignTitle": "Trending Campaign",
   "trendingCampaignDescription": "Join the latest campaign celebrating Persian New Year (Nowruz).",
-  "culturalSpotlightTitle": "Cultural Spotlight",
+  "learnMore": "Learn More",
+  
+  "culturalHubSectionTitle": "Cultural Spotlight",
   "culturalSpotlightDescription": "Explore the rich history and symbolism of Persian rug weaving.",
-  "newInMarketplaceTitle": "New in Marketplace",
-  "newInMarketplaceDescription": "Handcrafted calligraphy art, now available from our top artisans.",
-  "communityStoryTitle": "Community Story",
-  "communityStoryDescription": "How two entrepreneurs from different continents collaborated on Farsigram.",
-  "upcomingEventTitle": "Upcoming Event",
-  "upcomingEventDescription": "Live poetry reading session with renowned poets this Friday."
+  "readStory": "Read The Story",
+
+  "marketplaceSectionTitle": "Fresh on the Marketplace",
+  "sampleProduct1": "Handmade Calligraphy",
+  "sampleProduct2": "Persian Miniature Art",
+  "sampleProduct3": "Turquoise Jewelry",
+  "sampleProduct4": "Enamel Plate (Minakari)",
+
+  "categoriesSectionTitle": "Popular Categories"
 }

@@ -76,7 +76,7 @@ const App: React.FC = () => {
   const renderPage = () => {
     switch (currentPage) {
       case Page.Home:
-        return <HomePage />;
+        return <HomePage setCurrentPage={setCurrentPage} />;
       case Page.Campaigns:
         return <CampaignsPage />;
       case Page.CulturalHub:
@@ -94,7 +94,7 @@ const App: React.FC = () => {
       case Page.Profile:
         return <ProfilePage />;
       default:
-        return <HomePage />;
+        return <HomePage setCurrentPage={setCurrentPage} />;
     }
   };
 

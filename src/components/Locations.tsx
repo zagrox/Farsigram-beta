@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import MapComponent from './MapComponent';
+import { CombinedCountryData, CountryCard, CountryCardSkeleton } from './ui/CountryCard';
 
 // --- TYPE DEFINITIONS ---
 
@@ -22,53 +23,6 @@ interface RestCountry {
   population: number;
   latlng: [number, number];
 }
-
-interface CombinedCountryData {
-  id: number;
-  code: string;
-  persianName: string;
-  commonName: string;
-  flagUrl: string;
-  population: number;
-  latlng: [number, number];
-}
-
-// --- SUB-COMPONENTS ---
-
-const CountryCard: React.FC<{ country: CombinedCountryData }> = ({ country }) => {
-  return (
-    <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-      <div className="aspect-[16/10] bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
-        <img 
-          className="h-full w-full object-cover" 
-          src={country.flagUrl} 
-          alt={`Flag of ${country.commonName}`} 
-          loading="lazy"
-        />
-      </div>
-      <div className="p-3">
-        <div className="flex justify-between items-baseline gap-2">
-          <h3 className="font-bold text-lg text-neutral-900 dark:text-neutral-100 truncate" title={country.commonName}>
-            {country.commonName}
-          </h3>
-          <h4 className="text-sm font-medium text-primary flex-shrink-0">
-            {country.persianName}
-          </h4>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const LoadingSkeleton: React.FC = () => (
-    <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden animate-pulse">
-        <div className="aspect-[16/10] bg-neutral-200 dark:bg-neutral-700"></div>
-        <div className="p-3">
-            <div className="h-5 bg-neutral-200 dark:bg-neutral-700 rounded w-full"></div>
-        </div>
-    </div>
-);
-
 
 // --- MAIN COMPONENT ---
 
@@ -142,8 +96,8 @@ const Locations: React.FC = () => {
         </div>
         {/* List Skeleton */}
         <div className="lg:w-1/2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 9 }).map((_, i) => <LoadingSkeleton key={i} />)}
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-8 justify-items-center">
+            {Array.from({ length: 12 }).map((_, i) => <CountryCardSkeleton key={i} />)}
           </div>
         </div>
       </div>
@@ -163,7 +117,7 @@ const Locations: React.FC = () => {
       
       {/* Country List Column (Left side on desktop) */}
       <div className="lg:w-1/2">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-8 justify-items-center">
           {countries.map(country => <CountryCard key={country.id} country={country} />)}
         </div>
       </div>
