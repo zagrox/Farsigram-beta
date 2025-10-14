@@ -1,5 +1,6 @@
 {
   "title": "Explore",
   "loadingLocations": "Loading locations...",
-  "errorLoadingLocations": "Failed to load locations. Please try again later."
+  "errorLoadingLocations": "Failed to load locations. Please try again later.",
+  "communityListTitle": "Community List"
 }

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import MapComponent from './MapComponent';
 import { CombinedCountryData, CountryCard, CountryCardSkeleton } from './ui/CountryCard';
 import { API_BASE_URL } from '../constants';
 
@@ -27,7 +26,7 @@ interface RestCountry {
 
 // --- MAIN COMPONENT ---
 
-const Locations: React.FC = () => {
+const CountryGrid: React.FC = () => {
   const { t } = useTranslation('explore');
   const [countries, setCountries] = useState<CombinedCountryData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -79,51 +78,26 @@ const Locations: React.FC = () => {
     fetchLocations();
   }, [t]);
 
-  if (error) {
-    return (
-      <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
-        <p className="text-red-600 dark:text-red-400 font-semibold">{error}</p>
-      </div>
-    );
-  }
-
-  // Loading state with split-screen skeleton
-  if (loading) {
-    return (
-      <div className="flex flex-col lg:flex-row-reverse lg:gap-8">
-        {/* Map Skeleton */}
-        <div className="lg:w-1/2">
-          <div className="h-[400px] lg:h-[calc(100vh-10rem)] mb-8 lg:mb-0 bg-neutral-200 dark:bg-neutral-700 rounded-xl animate-pulse"></div>
-        </div>
-        {/* List Skeleton */}
-        <div className="lg:w-1/2">
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-8 justify-items-center">
-            {Array.from({ length: 12 }).map((_, i) => <CountryCardSkeleton key={i} />)}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="flex flex-col lg:flex-row-reverse lg:gap-8">
-      {/* Map Column (Right side on desktop) */}
-      <div className="lg:w-1/2">
-        {countries.length > 0 &&
-          <div className="h-[400px] lg:h-[calc(100vh-10rem)] lg:sticky lg:top-8 mb-8 lg:mb-0 bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden">
-            <MapComponent countries={countries} />
-          </div>
-        }
-      </div>
+    <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 h-full">
+      <h3 className="text-xl font-bold text-neutral-800 dark:text-neutral-200 mb-4">{t('gridTitle')}</h3>
       
-      {/* Country List Column (Left side on desktop) */}
-      <div className="lg:w-1/2">
+      {loading ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-8 justify-items-center">
-          {countries.map(country => <CountryCard key={country.id} country={country} />)}
+            {Array.from({ length: 12 }).map((_, i) => <CountryCardSkeleton key={i} />)}
         </div>
-      </div>
+      ) : error ? (
+        <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <p className="text-red-600 dark:text-red-400 font-semibold">{error}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center">
+            {countries.map(country => <CountryCard key={country.id} country={country} />)}
+        </div>
+      )}
     </div>
   );
 };
 
-export default Locations;
+export default CountryGrid;

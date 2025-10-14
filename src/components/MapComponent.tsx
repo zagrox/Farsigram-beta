@@ -25,14 +25,15 @@ interface CombinedCountryData {
 
 interface MapComponentProps {
   countries: CombinedCountryData[];
+  flyToLocation?: [number, number] | null;
+  flyToZoom?: number;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ countries }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ countries, flyToLocation, flyToZoom = 2 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.FeatureGroup | null>(null);
 
-  // Effect for map initialization (runs once on mount)
   useEffect(() => {
     if (mapContainerRef.current && !mapRef.current) {
       mapRef.current = L.map(mapContainerRef.current, {
@@ -47,7 +48,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ countries }) => {
       
       L.control.zoom({ position: 'topright' }).addTo(mapRef.current);
       
-      // This ensures the map resizes correctly after the container has settled its dimensions
       const timer = setTimeout(() => mapRef.current?.invalidateSize(), 100);
 
       return () => {
@@ -58,13 +58,11 @@ const MapComponent: React.FC<MapComponentProps> = ({ countries }) => {
         }
       };
     }
-  }, []); // Empty dependency array ensures this runs only once
+  }, []);
 
-  // Effect for updating markers when countries data changes
   useEffect(() => {
     const map = mapRef.current;
     if (map && countries.length > 0) {
-      // Clear existing markers
       if (markersRef.current) {
         markersRef.current.clearLayers();
       }
@@ -84,11 +82,23 @@ const MapComponent: React.FC<MapComponentProps> = ({ countries }) => {
 
       markersRef.current = L.featureGroup(markers).addTo(map);
       
-      if (markersRef.current.getBounds().isValid()) {
-        map.fitBounds(markersRef.current.getBounds().pad(0.2));
-      }
+      // We don't fitBounds here anymore to allow programmatic control
+      // if (markersRef.current.getBounds().isValid()) {
+      //   map.fitBounds(markersRef.current.getBounds().pad(0.2));
+      // }
     }
   }, [countries]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (map && flyToLocation) {
+        map.flyTo(flyToLocation, flyToZoom, {
+            animate: true,
+            duration: 1.5
+        });
+    }
+  }, [flyToLocation, flyToZoom]);
+
 
   return <div ref={mapContainerRef} className="z-0 w-full h-full" />;
 };
