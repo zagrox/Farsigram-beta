@@ -2,5 +2,13 @@
   "title": "Profile & Account Settings",
   "comingSoonTitle": "Your Profile, Your Platform",
   "comingSoonDescription": "We're crafting a comprehensive profile and settings area for you to control every aspect of your Farsigram experience.",
-  "editButton": "Edit Profile"
+  "editButton": "Edit Profile",
+  "general": "General",
+  "account": "Account",
+  "notifications": "Notifications",
+  "display_mode": "Display Mode",
+  "display_mode_desc": "Choose how Farsigram looks to you. Select a theme or sync with your system.",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System"
 }

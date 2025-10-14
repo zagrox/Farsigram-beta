@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import MapComponent from './MapComponent';
 import { CombinedCountryData, CountryCard, CountryCardSkeleton } from './ui/CountryCard';
+import { API_BASE_URL } from '../constants';
 
 // --- TYPE DEFINITIONS ---
 
@@ -37,7 +38,7 @@ const Locations: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const farsigramResponse = await fetch('https://crm.farsigram.com/items/locations');
+        const farsigramResponse = await fetch(`${API_BASE_URL}/items/locations`);
         if (!farsigramResponse.ok) throw new Error('Failed to fetch Farsigram locations');
         const farsigramData = await farsigramResponse.json();
         const locations: FarsigramLocation[] = farsigramData.data;

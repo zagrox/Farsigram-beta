@@ -2,5 +2,7 @@
   "title": "Categories",
   "loading": "Loading categories...",
   "error": "Failed to load categories. Please try again later.",
-  "noSubcategories": "No subcategories"
+  "noSubcategories": "No subcategories",
+  "audiences_title": "Target Audiences",
+  "error_audiences": "Failed to load audiences. Please try again later."
 }

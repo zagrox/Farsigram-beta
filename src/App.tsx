@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import CampaignsPage from './pages/CampaignsPage';
+import CampaignDetailsPage from './pages/CampaignDetailsPage';
 import CulturalHubPage from './pages/CulturalHubPage';
 import ExplorePage from './pages/ExplorePage';
 import CategoriesPage from './pages/CategoriesPage';
@@ -26,6 +27,7 @@ const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(Page.Home);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState<boolean>(true);
   const [language, setLanguage] = useState(i18n.language);
+  const [viewingCampaignId, setViewingCampaignId] = useState<number | null>(null);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -67,10 +69,23 @@ const App: React.FC = () => {
       i18n.off('languageChanged', handleLanguageChange);
     };
   }, []);
+  
+  // Reset campaign view when navigating away from the campaigns page
+  useEffect(() => {
+    if (currentPage !== Page.Campaigns) {
+      setViewingCampaignId(null);
+    }
+  }, [currentPage]);
 
   const setThemeAndStore = (newTheme: Theme) => {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme === Theme.Dark ? 'dark' : 'light');
+  };
+
+  const setSystemTheme = () => {
+    localStorage.removeItem('theme');
+    const systemIsDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+    setTheme(systemIsDark ? Theme.Dark : Theme.Light);
   };
 
   const renderPage = () => {
@@ -78,7 +93,14 @@ const App: React.FC = () => {
       case Page.Home:
         return <HomePage setCurrentPage={setCurrentPage} />;
       case Page.Campaigns:
-        return <CampaignsPage />;
+        return viewingCampaignId ? (
+          <CampaignDetailsPage 
+            campaignId={viewingCampaignId}
+            onBack={() => setViewingCampaignId(null)}
+          />
+        ) : (
+          <CampaignsPage onSelectCampaign={(id) => setViewingCampaignId(id)} />
+        );
       case Page.CulturalHub:
         return <CulturalHubPage />;
       case Page.Explore:
@@ -92,7 +114,7 @@ const App: React.FC = () => {
       case Page.Notifications:
         return <NotificationsPage />;
       case Page.Profile:
-        return <ProfilePage />;
+        return <ProfilePage setTheme={setThemeAndStore} setSystemTheme={setSystemTheme} />;
       default:
         return <HomePage setCurrentPage={setCurrentPage} />;
     }

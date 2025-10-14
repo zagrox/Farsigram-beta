@@ -1,4 +1,5 @@
 import React from 'react';
+import { ASSETS_URL } from '../constants';
 
 // Re-exporting from Heroicons with aliases to maintain consistency
 export {
@@ -18,13 +19,19 @@ export {
   MagnifyingGlassIcon as SearchIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ArrowLeftIcon,
+  LightBulbIcon,
+  UsersIcon,
+  MapPinIcon,
+  TagIcon,
+  ComputerDesktopIcon
 } from '@heroicons/react/24/outline';
 
 // Keep custom brand icon
 type IconProps = { className?: string };
 export const FarsigramIcon: React.FC<IconProps> = ({ className = 'w-6 h-6' }) => (
   <img 
-    src="https://crm.ir48.com/assets/14240e0b-beee-4d60-9dd3-e4794746c53e" 
+    src={`${ASSETS_URL}/9e90ea38-c50b-4dd7-99ea-bcff23b98ce1`} 
     alt="Farsigram Logo" 
     className={`${className} dark:invert`} 
   />

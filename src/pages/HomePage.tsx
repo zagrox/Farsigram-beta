@@ -4,6 +4,7 @@ import { Page } from '../types';
 import SectionHeader from '../components/ui/SectionHeader';
 import { CountryCard, CountryCardSkeleton, CombinedCountryData } from '../components/ui/CountryCard';
 import Button from '../components/ui/Button';
+import { API_BASE_URL } from '../constants';
 
 // --- TYPE DEFINITIONS (specific to this page) ---
 
@@ -59,7 +60,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage }) => {
     const fetchLocations = async () => {
       setLoadingLocations(true);
       try {
-        const farsigramResponse = await fetch('https://crm.farsigram.com/items/locations?limit=20');
+        const farsigramResponse = await fetch(`${API_BASE_URL}/items/locations?limit=20`);
         const farsigramData = await farsigramResponse.json();
         const locations: FarsigramLocation[] = farsigramData.data;
 
@@ -99,7 +100,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage }) => {
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
-        const response = await fetch('https://crm.farsigram.com/items/categories');
+        const response = await fetch(`${API_BASE_URL}/items/categories`);
         const data = await response.json();
         const publishedParentCategories: ApiCategory[] = data.data.filter(
           (cat: ApiCategory) => cat.status === 'published' && cat.category_name === null
@@ -143,7 +144,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage }) => {
       {/* Explore Section */}
       <section>
         <SectionHeader title={t('exploreSectionTitle')} onViewAll={() => setCurrentPage(Page.Explore)} />
-        <div className="flex items-center gap-8 overflow-x-auto pb-4 pt-2 no-scrollbar snap-x snap-mandatory -mx-6 px-6 lg:-mx-8 lg:px-8">
+        <div className="flex items-center gap-8 overflow-x-auto pb-4 pt-2 no-scrollbar snap-x snap-mandatory">
           {loadingLocations
             ? Array.from({ length: 20 }).map((_, i) => <CountryCardSkeleton key={i} />)
             : locations.map(country => <CountryCard key={country.id} country={country} />)}

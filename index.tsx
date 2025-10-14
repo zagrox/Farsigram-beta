@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './src/App';
-import './src/i18n'; // Initialize i18next
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -11,8 +10,6 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <React.Suspense fallback="Loading...">
-      <App />
-    </React.Suspense>
+    <App />
   </React.StrictMode>
 );

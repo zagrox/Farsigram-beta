@@ -2,6 +2,9 @@ import React from 'react';
 import { Page } from './types';
 import { HomeIcon, CampaignIcon, CultureIcon, ExploreIcon, MarketplaceIcon, MessageIcon, NotificationIcon, ProfileIcon, CategoryIcon } from './components/Icons';
 
+export const API_BASE_URL = 'https://crm.farsigram.com';
+export const ASSETS_URL = `${API_BASE_URL}/assets`;
+
 export interface NavItem {
   id: Page;
   label: string;

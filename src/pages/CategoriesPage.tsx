@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { API_BASE_URL, ASSETS_URL } from '../constants';
+import SectionHeader from '../components/ui/SectionHeader';
 
 interface ApiCategory {
   id: number;
@@ -12,6 +14,13 @@ interface ApiCategory {
 
 interface ParentCategory extends ApiCategory {
   subcategories: ApiCategory[];
+}
+
+interface ApiAudience {
+  id: number;
+  status: string;
+  audience_title: string;
+  audience_color: string | null;
 }
 
 const hexToRgba = (hex: string | null, alpha: number): string => {
@@ -36,10 +45,14 @@ const CategoriesPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [audiences, setAudiences] = useState<ApiAudience[]>([]);
+  const [loadingAudiences, setLoadingAudiences] = useState<boolean>(true);
+  const [errorAudiences, setErrorAudiences] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('https://crm.farsigram.com/items/categories');
+        const response = await fetch(`${API_BASE_URL}/items/categories`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -76,64 +89,115 @@ const CategoriesPage: React.FC = () => {
       }
     };
 
+    const fetchAudiences = async () => {
+        setLoadingAudiences(true);
+        setErrorAudiences(null);
+        try {
+          const response = await fetch(`${API_BASE_URL}/items/audiences`);
+          if (!response.ok) {
+            throw new Error('Network response was not ok for audiences');
+          }
+          const data = await response.json();
+          const publishedAudiences: ApiAudience[] = data.data.filter(
+            (aud: ApiAudience) => aud.status === 'published'
+          );
+          setAudiences(publishedAudiences);
+        } catch (err) {
+          setErrorAudiences(t('error_audiences'));
+          console.error("Failed to fetch audiences:", err);
+        } finally {
+          setLoadingAudiences(false);
+        }
+      };
+
     fetchCategories();
+    fetchAudiences();
   }, [t]);
 
   return (
-    <div className="space-y-8">
-      {loading && <p className="text-center text-neutral-500 dark:text-neutral-400">{t('loading')}</p>}
-      {error && <p className="text-center text-red-500">{error}</p>}
+    <div className="space-y-12">
+      {/* Categories Section */}
+      <section>
+        {loading && <p className="text-center text-neutral-500 dark:text-neutral-400">{t('loading')}</p>}
+        {error && <p className="text-center text-red-500">{error}</p>}
 
-      {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {structuredCategories.map((parent) => (
-            <div 
-              key={parent.id} 
-              className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-            >
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {structuredCategories.map((parent) => (
               <div 
-                className="p-4 flex items-center gap-4"
-                style={{ backgroundColor: hexToRgba(parent.category_color, 0.1) }}
+                key={parent.id} 
+                className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
               >
-                {parent.category_image && (
-                   <div 
-                    className="w-12 h-12 rounded-full flex-shrink-0 bg-white dark:bg-neutral-800 p-1 flex items-center justify-center"
-                    style={{ border: `2px solid ${parent.category_color || '#cccccc'}` }}
-                   >
-                    <img 
-                      src={`https://crm.farsigram.com/assets/${parent.category_image}`} 
-                      alt={parent.category_parent}
-                      className="w-10 h-10 object-contain"
-                    />
-                   </div>
-                )}
-                <h3 
-                  className="text-xl font-bold"
-                  style={{ color: parent.category_color || 'inherit' }}
+                <div 
+                  className="p-4 flex items-center gap-4"
+                  style={{ backgroundColor: hexToRgba(parent.category_color, 0.1) }}
                 >
-                  {parent.category_parent}
-                </h3>
+                  {parent.category_image && (
+                    <div 
+                      className="w-12 h-12 rounded-full flex-shrink-0 bg-white dark:bg-neutral-800 p-1 flex items-center justify-center"
+                      style={{ border: `2px solid ${parent.category_color || '#cccccc'}` }}
+                    >
+                      <img 
+                        src={`${ASSETS_URL}/${parent.category_image}`} 
+                        alt={parent.category_parent}
+                        className="w-10 h-10 object-contain"
+                      />
+                    </div>
+                  )}
+                  <h3 
+                    className="text-xl font-bold"
+                    style={{ color: parent.category_color || 'inherit' }}
+                  >
+                    {parent.category_parent}
+                  </h3>
+                </div>
+                <div className="p-6">
+                  {parent.subcategories.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {parent.subcategories.map((sub) => (
+                        <span
+                          key={sub.id}
+                          className="text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700/50 px-3 py-1 rounded-full cursor-pointer transition-colors hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
+                        >
+                          {sub.category_parent}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-neutral-400 dark:text-neutral-500 italic">{t('noSubcategories')}</p>
+                  )}
+                </div>
               </div>
-              <div className="p-6">
-                {parent.subcategories.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {parent.subcategories.map((sub) => (
-                      <span
-                        key={sub.id}
-                        className="text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700/50 px-3 py-1 rounded-full cursor-pointer transition-colors hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Audiences Section */}
+      <section>
+          <SectionHeader title={t('audiences_title')} />
+          {loadingAudiences ? (
+              <div className="flex flex-wrap gap-3 animate-pulse">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="h-9 w-24 bg-neutral-200 dark:bg-neutral-700 rounded-full"></div>
+                  ))}
+              </div>
+          ) : errorAudiences ? (
+              <p className="text-center text-red-500">{errorAudiences}</p>
+          ) : (
+              <div className="flex flex-wrap gap-3">
+                  {audiences.map(aud => (
+                      <div
+                          key={aud.id}
+                          className="text-md font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700/50 px-5 py-2 rounded-full"
+                          style={{ border: `2px solid ${aud.audience_color || 'transparent'}` }}
                       >
-                        {sub.category_parent}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-neutral-400 dark:text-neutral-500 italic">{t('noSubcategories')}</p>
-                )}
+                          {aud.audience_title}
+                      </div>
+                  ))}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+          )}
+      </section>
     </div>
   );
 };
