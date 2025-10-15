@@ -1,0 +1,23 @@
+{
+  "title": "Influencers",
+  "headerTitle": "Explore Influencers",
+  "headerDescription": "Discover and connect with creators shaping the Farsi-speaking community.",
+  "createButton": "Register as Influencer",
+  "loading": "Loading influencers...",
+  "error": "Failed to load influencers. Please try again later.",
+  "noInfluencers": "No influencers found at the moment.",
+  "viewProfile": "View Profile",
+  "backToInfluencers": "Back to Influencers",
+  "age": "Age",
+  "gender": "Gender",
+  "male": "Male",
+  "female": "Female",
+  "other": "Other",
+  "category": "Category",
+  "location": "Location",
+  "audience": "Audience",
+  "social_profiles": "Social Profiles",
+  "partOfHub": "Farsigram Hub Member",
+  "loading_details": "Loading influencer details...",
+  "error_details": "Could not load influencer details. Please go back and try again."
+}

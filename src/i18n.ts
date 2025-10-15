@@ -19,6 +19,7 @@ i18n
       'messages',
       'notifications',
       'profile',
+      'influencers',
     ],
     defaultNS: 'common',
     backend: {

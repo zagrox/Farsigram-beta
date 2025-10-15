@@ -5,6 +5,16 @@ import { API_BASE_URL, ASSETS_URL } from '../constants';
 
 // --- TYPE DEFINITIONS ---
 
+interface SocialProfile {
+  id: number;
+  social_network: string;
+  social_account: string;
+}
+
+interface CampaignSocialJunction {
+  socials_id: SocialProfile;
+}
+
 interface Campaign {
   id: number;
   campaign_image: string;
@@ -17,15 +27,9 @@ interface Campaign {
   campaign_audience: number[];
   campaign_location: number[];
   campaign_type: number[];
-  campaign_social: number[];
+  campaign_social: CampaignSocialJunction[];
   date_created: string;
   date_updated: string;
-}
-
-interface SocialProfile {
-  id: number;
-  social_network: string;
-  social_account: string;
 }
 
 interface RelatedData {
@@ -89,11 +93,13 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
       setLoading(true);
       setError(null);
       try {
-        const campaignRes = await fetch(`${API_BASE_URL}/items/campaigns/${campaignId}`);
+        const campaignRes = await fetch(`${API_BASE_URL}/items/campaigns/${campaignId}?fields=*,campaign_social.socials_id.*`);
         if (!campaignRes.ok) throw new Error('Campaign not found');
         const campaignData = await campaignRes.json();
         const camp: Campaign = campaignData.data;
         setCampaign(camp);
+
+        const socials: SocialProfile[] = camp.campaign_social?.map(item => item.socials_id).filter(Boolean) || [];
 
         const fetchRelated = async (endpoint: string, ids: number[], key?: string) => {
             if (!ids || ids.length === 0) return [];
@@ -114,11 +120,10 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
             }
         };
 
-        const [audience, locations, types, socials] = await Promise.all([
+        const [audience, locations, types] = await Promise.all([
             fetchRelated('audiences', camp.campaign_audience, 'audience_title'),
             fetchRelated('locations', camp.campaign_location, 'country_persian'),
             fetchRelated('categories', camp.campaign_type, 'category_parent'),
-            fetchRelated('socials', camp.campaign_social)
         ]);
         
         setRelatedData({ audience, locations, types, socials });

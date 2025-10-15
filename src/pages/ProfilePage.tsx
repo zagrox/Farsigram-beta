@@ -8,7 +8,7 @@ interface ProfilePageProps {
   setSystemTheme: () => void;
 }
 
-type Tab = 'general' | 'account' | 'notifications';
+type Tab = 'general' | 'account' | 'messages' | 'notifications';
 type ThemePreference = 'light' | 'dark' | 'system';
 
 const TabButton: React.FC<{ isActive: boolean; onClick: () => void; children: React.ReactNode }> = ({ isActive, onClick, children }) => (
@@ -83,7 +83,7 @@ const GeneralSettings: React.FC<ProfilePageProps> = ({ setTheme, setSystemTheme 
 };
 
 const ProfilePage: React.FC<ProfilePageProps> = (props) => {
-  const { t } = useTranslation('profile');
+  const { t } = useTranslation(['profile', 'messages', 'notifications']);
   const [activeTab, setActiveTab] = useState<Tab>('general');
 
   const renderContent = () => {
@@ -91,9 +91,26 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
       case 'general':
         return <GeneralSettings {...props} />;
       case 'account':
-        return <div className="mt-6 text-center text-neutral-500 dark:text-neutral-400">{t('comingSoonTitle')}</div>;
+        return (
+            <div className="mt-6 bg-white dark:bg-neutral-800/50 p-8 rounded-xl shadow-md text-center">
+                <h2 className="text-2xl font-semibold">{t('profile:comingSoonTitle')}</h2>
+                <p className="mt-2 text-neutral-500 dark:text-neutral-400">{t('profile:comingSoonDescription')}</p>
+            </div>
+        );
+      case 'messages':
+        return (
+            <div className="mt-6 bg-white dark:bg-neutral-800/50 p-8 rounded-xl shadow-md text-center">
+                <h2 className="text-2xl font-semibold">{t('messages:comingSoonTitle')}</h2>
+                <p className="mt-2 text-neutral-500 dark:text-neutral-400">{t('messages:comingSoonDescription')}</p>
+            </div>
+        );
       case 'notifications':
-        return <div className="mt-6 text-center text-neutral-500 dark:text-neutral-400">{t('comingSoonTitle')}</div>;
+        return (
+            <div className="mt-6 bg-white dark:bg-neutral-800/50 p-8 rounded-xl shadow-md text-center">
+                <h2 className="text-2xl font-semibold">{t('notifications:comingSoonTitle')}</h2>
+                <p className="mt-2 text-neutral-500 dark:text-neutral-400">{t('notifications:comingSoonDescription')}</p>
+            </div>
+        );
       default:
         return null;
     }
@@ -103,13 +120,16 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center gap-2 p-1 bg-neutral-100/50 dark:bg-neutral-950/50 rounded-lg">
         <TabButton isActive={activeTab === 'general'} onClick={() => setActiveTab('general')}>
-          {t('general')}
+          {t('profile:general')}
         </TabButton>
         <TabButton isActive={activeTab === 'account'} onClick={() => setActiveTab('account')}>
-          {t('account')}
+          {t('profile:account')}
+        </TabButton>
+        <TabButton isActive={activeTab === 'messages'} onClick={() => setActiveTab('messages')}>
+          {t('profile:messages')}
         </TabButton>
         <TabButton isActive={activeTab === 'notifications'} onClick={() => setActiveTab('notifications')}>
-          {t('notifications')}
+          {t('profile:notifications')}
         </TabButton>
       </div>
       {renderContent()}

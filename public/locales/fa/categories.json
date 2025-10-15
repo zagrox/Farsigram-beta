@@ -4,5 +4,22 @@
   "error": "بارگذاری دسته‌بندی‌ها با شکست مواجه شد. لطفاً بعداً دوباره امتحان کنید.",
   "noSubcategories": "بدون زیرمجموعه",
   "audiences_title": "مخاطبان هدف",
-  "error_audiences": "بارگذاری مخاطبان با شکست مواجه شد. لطفاً بعداً دوباره امتحان کنید."
+  "error_audiences": "بارگذاری مخاطبان با شکست مواجه شد. لطفاً بعداً دوباره امتحان کنید.",
+  "socials_title": "مرور بر اساس شبکه‌های اجتماعی",
+  "error_socials": "بارگذاری شبکه‌های اجتماعی با شکست مواجه شد. لطفاً بعداً دوباره امتحان کنید.",
+  "network_details_title": "{{networkName}} در فارسیگرام",
+  "influencers_on_network": "اینفلوئنسرها در {{networkName}}",
+  "campaigns_on_network": "کمپین‌ها در {{networkName}}",
+  "back_to_categories": "بازگشت به دسته‌بندی‌ها",
+  "no_influencers_found": "هنوز اینفلوئنسری برای این شبکه یافت نشده است.",
+  "no_campaigns_found": "هنوز کمپینی برای این شبکه یافت نشده است.",
+  "error_loading_influencers": "بارگذاری اینفلوئنسرهای این شبکه با مشکل مواجه شد.",
+  "error_loading_campaigns": "بارگذاری کمپین‌های این شبکه با مشکل مواجه شد.",
+  "audience_details_title": "پروفایل‌ها برای {{audienceName}}",
+  "influencers_for_audience": "اینفلوئنسرهای هدفمند برای {{audienceName}}",
+  "campaigns_for_audience": "کمپین‌های هدفمند برای {{audienceName}}",
+  "no_influencers_found_for_audience": "هنوز اینفلوئنسری برای این مخاطب یافت نشده است.",
+  "no_campaigns_found_for_audience": "هنوز کمپینی برای این مخاطب یافت نشده است.",
+  "error_loading_influencers_for_audience": "بارگذاری اینفلوئنسرهای این مخاطب با مشکل مواجه شد.",
+  "error_loading_campaigns_for_audience": "بارگذاری کمپین‌های این مخاطب با مشکل مواجه شد."
 }

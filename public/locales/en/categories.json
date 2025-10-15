@@ -4,5 +4,22 @@
   "error": "Failed to load categories. Please try again later.",
   "noSubcategories": "No subcategories",
   "audiences_title": "Target Audiences",
-  "error_audiences": "Failed to load audiences. Please try again later."
+  "error_audiences": "Failed to load audiences. Please try again later.",
+  "socials_title": "Browse by Social Network",
+  "error_socials": "Failed to load social networks. Please try again later.",
+  "network_details_title": "{{networkName}} on Farsigram",
+  "influencers_on_network": "Influencers on {{networkName}}",
+  "campaigns_on_network": "Campaigns on {{networkName}}",
+  "back_to_categories": "Back to Categories",
+  "no_influencers_found": "No influencers found for this network yet.",
+  "no_campaigns_found": "No campaigns found for this network yet.",
+  "error_loading_influencers": "Could not load influencers for this network.",
+  "error_loading_campaigns": "Could not load campaigns for this network.",
+  "audience_details_title": "Profiles for {{audienceName}}",
+  "influencers_for_audience": "Influencers Targeting {{audienceName}}",
+  "campaigns_for_audience": "Campaigns Targeting {{audienceName}}",
+  "no_influencers_found_for_audience": "No influencers found for this audience yet.",
+  "no_campaigns_found_for_audience": "No campaigns found for this audience yet.",
+  "error_loading_influencers_for_audience": "Could not load influencers for this audience.",
+  "error_loading_campaigns_for_audience": "Could not load campaigns for this audience."
 }

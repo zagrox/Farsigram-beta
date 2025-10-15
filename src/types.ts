@@ -5,9 +5,8 @@ export enum Page {
   Explore,
   Categories,
   Marketplace,
-  Messages,
-  Notifications,
   Profile,
+  Influencers,
 }
 
 export enum Theme {

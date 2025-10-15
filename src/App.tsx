@@ -8,10 +8,12 @@ import CampaignDetailsPage from './pages/CampaignDetailsPage';
 import CulturalHubPage from './pages/CulturalHubPage';
 import ExplorePage from './pages/ExplorePage';
 import CategoriesPage from './pages/CategoriesPage';
+import NetworkDetailsPage from './pages/NetworkDetailsPage';
+import AudienceDetailsPage from './pages/AudienceDetailsPage'; // Import new page
 import MarketplacePage from './pages/MarketplacePage';
-import MessagesPage from './pages/MessagesPage';
-import NotificationsPage from './pages/NotificationsPage';
 import ProfilePage from './pages/ProfilePage';
+import InfluencersPage from './pages/InfluencersPage';
+import InfluencerDetailsPage from './pages/InfluencerDetailsPage';
 import i18n from './i18n';
 
 const App: React.FC = () => {
@@ -28,6 +30,9 @@ const App: React.FC = () => {
   const [isSidebarCollapsed, setSidebarCollapsed] = useState<boolean>(true);
   const [language, setLanguage] = useState(i18n.language);
   const [viewingCampaignId, setViewingCampaignId] = useState<number | null>(null);
+  const [viewingInfluencerId, setViewingInfluencerId] = useState<number | null>(null);
+  const [viewingNetwork, setViewingNetwork] = useState<string | null>(null);
+  const [viewingAudienceId, setViewingAudienceId] = useState<number | null>(null); // State for audience details page
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -70,10 +75,17 @@ const App: React.FC = () => {
     };
   }, []);
   
-  // Reset campaign view when navigating away from the campaigns page
+  // Reset item views when navigating away from their respective pages
   useEffect(() => {
     if (currentPage !== Page.Campaigns) {
       setViewingCampaignId(null);
+    }
+    if (currentPage !== Page.Influencers) {
+      setViewingInfluencerId(null);
+    }
+    if (currentPage !== Page.Categories) {
+      setViewingNetwork(null);
+      setViewingAudienceId(null);
     }
   }, [currentPage]);
 
@@ -101,18 +113,54 @@ const App: React.FC = () => {
         ) : (
           <CampaignsPage onSelectCampaign={(id) => setViewingCampaignId(id)} />
         );
+      case Page.Influencers:
+        return viewingInfluencerId ? (
+          <InfluencerDetailsPage
+            influencerId={viewingInfluencerId}
+            onBack={() => setViewingInfluencerId(null)}
+          />
+        ) : (
+          <InfluencersPage onSelectInfluencer={(id) => setViewingInfluencerId(id)} />
+        );
       case Page.CulturalHub:
         return <CulturalHubPage />;
       case Page.Explore:
         return <ExplorePage />;
       case Page.Categories:
-        return <CategoriesPage />;
+        if (viewingNetwork) {
+          return <NetworkDetailsPage
+            networkUrl={viewingNetwork}
+            onBack={() => setViewingNetwork(null)}
+            onSelectInfluencer={(id) => {
+              setViewingInfluencerId(id);
+              setCurrentPage(Page.Influencers);
+            }}
+            onSelectCampaign={(id) => {
+              setViewingCampaignId(id);
+              setCurrentPage(Page.Campaigns);
+            }}
+          />
+        }
+        if (viewingAudienceId) {
+            return <AudienceDetailsPage
+                audienceId={viewingAudienceId}
+                onBack={() => setViewingAudienceId(null)}
+                onSelectInfluencer={(id) => {
+                    setViewingInfluencerId(id);
+                    setCurrentPage(Page.Influencers);
+                }}
+                onSelectCampaign={(id) => {
+                    setViewingCampaignId(id);
+                    setCurrentPage(Page.Campaigns);
+                }}
+            />;
+        }
+        return <CategoriesPage 
+            onSelectNetwork={(url) => setViewingNetwork(url)}
+            onSelectAudience={(id) => setViewingAudienceId(id)}
+        />;
       case Page.Marketplace:
         return <MarketplacePage />;
-      case Page.Messages:
-        return <MessagesPage />;
-      case Page.Notifications:
-        return <NotificationsPage />;
       case Page.Profile:
         return <ProfilePage setTheme={setThemeAndStore} setSystemTheme={setSystemTheme} />;
       default:

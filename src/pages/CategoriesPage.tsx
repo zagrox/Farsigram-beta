@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL, ASSETS_URL } from '../constants';
 import SectionHeader from '../components/ui/SectionHeader';
+import { SocialIcon } from '../components/Icons';
 
 interface ApiCategory {
   id: number;
@@ -23,6 +24,11 @@ interface ApiAudience {
   audience_color: string | null;
 }
 
+interface CategoriesPageProps {
+  onSelectNetwork: (networkUrl: string) => void;
+  onSelectAudience: (id: number) => void;
+}
+
 const hexToRgba = (hex: string | null, alpha: number): string => {
   if (!hex || !/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
     // Return a default color if hex is invalid or null
@@ -39,7 +45,7 @@ const hexToRgba = (hex: string | null, alpha: number): string => {
 };
 
 
-const CategoriesPage: React.FC = () => {
+const CategoriesPage: React.FC<CategoriesPageProps> = ({ onSelectNetwork, onSelectAudience }) => {
   const { t } = useTranslation('categories');
   const [structuredCategories, setStructuredCategories] = useState<ParentCategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -48,6 +54,10 @@ const CategoriesPage: React.FC = () => {
   const [audiences, setAudiences] = useState<ApiAudience[]>([]);
   const [loadingAudiences, setLoadingAudiences] = useState<boolean>(true);
   const [errorAudiences, setErrorAudiences] = useState<string | null>(null);
+
+  const [socials, setSocials] = useState<string[]>([]);
+  const [loadingSocials, setLoadingSocials] = useState<boolean>(true);
+  const [errorSocials, setErrorSocials] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -109,10 +119,44 @@ const CategoriesPage: React.FC = () => {
           setLoadingAudiences(false);
         }
       };
+      
+    const fetchSocials = async () => {
+        setLoadingSocials(true);
+        setErrorSocials(null);
+        try {
+            const response = await fetch(`${API_BASE_URL}/items/socials?fields=social_network&limit=-1`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok for socials');
+            }
+            const data = await response.json();
+            const allSocialLinks: { social_network: string }[] = data.data;
+            const uniqueNetworks = [...new Set(allSocialLinks.map(s => s.social_network).filter(Boolean))];
+            setSocials(uniqueNetworks);
+        } catch (err) {
+            setErrorSocials(t('error_socials'));
+            console.error("Failed to fetch socials:", err);
+        } finally {
+            setLoadingSocials(false);
+        }
+    };
 
     fetchCategories();
     fetchAudiences();
+    fetchSocials();
   }, [t]);
+
+  const getSocialNetworkName = (url: string): string => {
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.includes('x.com') || lowerUrl.includes('twitter.com')) return 'X (Twitter)';
+    if (lowerUrl.includes('instagram.com')) return 'Instagram';
+    if (lowerUrl.includes('t.me') || lowerUrl.includes('telegram')) return 'Telegram';
+    if (lowerUrl.includes('youtube.com')) return 'YouTube';
+    if (lowerUrl.includes('tiktok.com')) return 'TikTok';
+    if (lowerUrl.includes('wa.me') || lowerUrl.includes('whatsapp.com')) return 'WhatsApp';
+    if (lowerUrl.includes('linkedin.com')) return 'LinkedIn';
+    if (lowerUrl.includes('facebook.com')) return 'Facebook';
+    return 'Social Link';
+  };
 
   return (
     <div className="space-y-12">
@@ -187,13 +231,42 @@ const CategoriesPage: React.FC = () => {
           ) : (
               <div className="flex flex-wrap gap-3">
                   {audiences.map(aud => (
-                      <div
+                      <button
                           key={aud.id}
-                          className="text-md font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700/50 px-5 py-2 rounded-full"
+                          onClick={() => onSelectAudience(aud.id)}
+                          className="text-md font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700/50 px-5 py-2 rounded-full cursor-pointer transition-colors hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
                           style={{ border: `2px solid ${aud.audience_color || 'transparent'}` }}
                       >
                           {aud.audience_title}
-                      </div>
+                      </button>
+                  ))}
+              </div>
+          )}
+      </section>
+
+      {/* Social Networks Section */}
+      <section>
+          <SectionHeader title={t('socials_title')} />
+          {loadingSocials ? (
+              <div className="flex flex-wrap gap-4 animate-pulse">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="w-16 h-16 bg-neutral-200 dark:bg-neutral-700 rounded-lg"></div>
+                  ))}
+              </div>
+          ) : errorSocials ? (
+              <p className="text-center text-red-500">{errorSocials}</p>
+          ) : (
+              <div className="flex flex-wrap gap-4">
+                  {socials.map(networkUrl => (
+                      <button
+                          key={networkUrl}
+                          onClick={() => onSelectNetwork(networkUrl)}
+                          className="flex items-center justify-center w-16 h-16 bg-neutral-100 dark:bg-neutral-700/50 rounded-lg cursor-pointer transition-all hover:scale-110 hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 text-neutral-600 dark:text-neutral-300"
+                          title={getSocialNetworkName(networkUrl)}
+                          aria-label={`Browse ${getSocialNetworkName(networkUrl)} profiles`}
+                      >
+                          <SocialIcon networkUrl={networkUrl} className="w-8 h-8" />
+                      </button>
                   ))}
               </div>
           )}

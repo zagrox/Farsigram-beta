@@ -17,9 +17,8 @@ const pageInfo: Record<Page, { ns: string; titleKey: string }> = {
   [Page.Explore]: { ns: 'explore', titleKey: 'title' },
   [Page.Categories]: { ns: 'categories', titleKey: 'title' },
   [Page.Marketplace]: { ns: 'marketplace', titleKey: 'title' },
-  [Page.Messages]: { ns: 'messages', titleKey: 'title' },
-  [Page.Notifications]: { ns: 'notifications', titleKey: 'title' },
   [Page.Profile]: { ns: 'profile', titleKey: 'title' },
+  [Page.Influencers]: { ns: 'influencers', titleKey: 'title' },
 };
 
 
