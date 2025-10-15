@@ -14,6 +14,7 @@
   "type": "Campaign Type",
   "overview": "Overview",
   "tags": "Tags",
+  "social_profiles": "Social Profiles",
   "join_campaign": "Join Campaign",
   "loading_details": "Loading campaign details...",
   "error_details": "Could not load campaign details. Please go back and try again.",

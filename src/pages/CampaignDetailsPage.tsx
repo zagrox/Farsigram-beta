@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LightBulbIcon, UsersIcon, MapPinIcon, TagIcon } from '../components/Icons';
+import { LightBulbIcon, UsersIcon, MapPinIcon, TagIcon, SocialIcon } from '../components/Icons';
 import { API_BASE_URL, ASSETS_URL } from '../constants';
 
 // --- TYPE DEFINITIONS ---
@@ -17,14 +17,22 @@ interface Campaign {
   campaign_audience: number[];
   campaign_location: number[];
   campaign_type: number[];
+  campaign_social: number[];
   date_created: string;
   date_updated: string;
+}
+
+interface SocialProfile {
+  id: number;
+  social_network: string;
+  social_account: string;
 }
 
 interface RelatedData {
     audience: string[];
     locations: string[];
     types: string[];
+    socials: SocialProfile[];
 }
 
 interface CampaignDetailsPageProps {
@@ -87,7 +95,7 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
         const camp: Campaign = campaignData.data;
         setCampaign(camp);
 
-        const fetchRelated = async (endpoint: string, ids: number[], key: string) => {
+        const fetchRelated = async (endpoint: string, ids: number[], key?: string) => {
             if (!ids || ids.length === 0) return [];
             try {
                 const res = await fetch(`${API_BASE_URL}/items/${endpoint}?filter[id][_in]=${ids.join(',')}`);
@@ -97,7 +105,7 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
                 }
                 const data = await res.json();
                 if (data && Array.isArray(data.data)) {
-                    return data.data.map((item: any) => item[key] || `ID: ${item.id}`);
+                    return key ? data.data.map((item: any) => item[key] || `ID: ${item.id}`) : data.data;
                 }
                 return [];
             } catch (error) {
@@ -106,13 +114,14 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
             }
         };
 
-        const [audience, locations, types] = await Promise.all([
+        const [audience, locations, types, socials] = await Promise.all([
             fetchRelated('audiences', camp.campaign_audience, 'audience_title'),
             fetchRelated('locations', camp.campaign_location, 'country_persian'),
-            fetchRelated('categories', camp.campaign_type, 'category_parent')
+            fetchRelated('categories', camp.campaign_type, 'category_parent'),
+            fetchRelated('socials', camp.campaign_social)
         ]);
         
-        setRelatedData({ audience, locations, types });
+        setRelatedData({ audience, locations, types, socials });
 
       } catch (err) {
         console.error("Failed to fetch campaign details:", err);
@@ -211,6 +220,26 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
                     <div className="flex flex-wrap gap-3">
                         {campaign.campaign_tags.map(tag => (
                             <span key={tag} className="text-sm font-medium bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-4 py-2 rounded-full">{tag}</span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {relatedData?.socials && relatedData.socials.length > 0 && (
+                <div className="mt-8">
+                    <h3 className="text-lg font-bold mb-3 text-neutral-800 dark:text-neutral-200">{t('social_profiles')}</h3>
+                    <div className="flex flex-wrap gap-4">
+                        {relatedData.socials.map(social => (
+                            <a 
+                                key={social.id} 
+                                href={`${social.social_network}${social.social_account}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-4 py-2 rounded-lg transition-colors hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
+                            >
+                                <SocialIcon networkUrl={social.social_network} className="w-5 h-5" />
+                                <span className="font-medium text-sm">{social.social_account}</span>
+                            </a>
                         ))}
                     </div>
                 </div>
