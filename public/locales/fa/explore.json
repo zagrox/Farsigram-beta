@@ -2,5 +2,14 @@
   "title": "کاوش",
   "loadingLocations": "در حال بارگذاری مکان‌ها...",
   "errorLoadingLocations": "بارگذاری مکان‌ها با شکست مواجه شد. لطفاً بعداً دوباره امتحان کنید.",
-  "communityListTitle": "فهرست جوامع"
+  "communityListTitle": "فهرست جوامع",
+  "location_details_title": "پروفایل‌ها در {{locationName}}",
+  "influencers_in_location": "اینفلوئنسرها در {{locationName}}",
+  "campaigns_in_location": "کمپین‌ها در {{locationName}}",
+  "no_influencers_found_in_location": "هنوز اینفلوئنسری برای این مکان یافت نشده است.",
+  "no_campaigns_found_in_location": "هنوز کمپینی برای این مکان یافت نشده است.",
+  "error_loading_influencers_in_location": "بارگذاری اینفلوئنسرهای این مکان با مشکل مواجه شد.",
+  "error_loading_campaigns_in_location": "بارگذاری کمپین‌های این مکان با مشکل مواجه شد.",
+  "back_to_explore": "بازگشت به کاوش",
+  "viewDetails": "مشاهده جزئیات"
 }

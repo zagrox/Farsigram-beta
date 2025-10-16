@@ -18,6 +18,7 @@ interface ApiCategory {
 
 interface HomePageProps {
   setCurrentPage: (page: Page) => void;
+  onSelectLocation: (id: number) => void;
 }
 
 interface FarsigramLocation {
@@ -48,7 +49,7 @@ const ProductCard: React.FC<{ title: string; imageUrl: string }> = ({ title, ima
 
 // --- MAIN COMPONENT ---
 
-const HomePage: React.FC<HomePageProps> = ({ setCurrentPage }) => {
+const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation }) => {
   const { t } = useTranslation('home');
   const [locations, setLocations] = useState<CombinedCountryData[]>([]);
   const [categories, setCategories] = useState<ApiCategory[]>([]);
@@ -147,7 +148,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage }) => {
         <div className="flex items-center gap-8 overflow-x-auto pb-4 pt-2 no-scrollbar snap-x snap-mandatory">
           {loadingLocations
             ? Array.from({ length: 20 }).map((_, i) => <CountryCardSkeleton key={i} />)
-            : locations.map(country => <CountryCard key={country.id} country={country} />)}
+            : locations.map(country => <CountryCard key={country.id} country={country} onSelect={() => onSelectLocation(country.id)} />)}
         </div>
       </section>
       

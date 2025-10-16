@@ -5,7 +5,11 @@ import { CombinedCountryData } from './CountryCard';
 import MapComponent from '../MapComponent';
 import { arraysAreEqual } from '../../utils/arrayUtils';
 
-const InteractiveMapView: React.FC = () => {
+interface InteractiveMapViewProps {
+  onSelectLocation: (id: number) => void;
+}
+
+const InteractiveMapView: React.FC<InteractiveMapViewProps> = ({ onSelectLocation }) => {
     const { t } = useTranslation('explore');
     const [countries, setCountries] = useState<CombinedCountryData[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -72,7 +76,12 @@ const InteractiveMapView: React.FC = () => {
 
     return (
         <div className="relative h-[calc(100vh-10rem)] w-full bg-neutral-200 dark:bg-neutral-800 rounded-xl shadow-lg overflow-hidden">
-            <MapComponent countries={countries} flyToLocation={selectedLocation} flyToZoom={6} />
+            <MapComponent 
+                countries={countries} 
+                flyToLocation={selectedLocation} 
+                flyToZoom={6} 
+                onSelectLocation={onSelectLocation} 
+            />
             
             <div className="absolute left-4 top-4 bottom-4 w-72 bg-white/70 dark:bg-black/50 backdrop-blur-sm rounded-xl shadow-lg flex flex-col overflow-hidden">
                 <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-200 p-4 border-b border-black/10 dark:border-white/10 flex-shrink-0">
@@ -90,7 +99,9 @@ const InteractiveMapView: React.FC = () => {
                                 return (
                                     <button 
                                         key={country.id} 
-                                        onClick={() => setSelectedLocation(country.latlng)}
+                                        onClick={() => {
+                                            setSelectedLocation(country.latlng);
+                                        }}
                                         className={`w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors duration-200 ${
                                             isActive 
                                                 ? 'bg-primary/20 dark:bg-primary/30' 

@@ -84,7 +84,8 @@ const CompactMapView: React.FC = () => {
 
             {!loading && !error && countries.length > 0 && (
                 <div className="aspect-video rounded-lg overflow-hidden shadow-inner">
-                    <MapComponent countries={countries} />
+                    {/* FIX: Pass a no-op function for the required onSelectLocation prop to resolve the type error. */}
+                    <MapComponent countries={countries} onSelectLocation={() => {}} />
                 </div>
             )}
         </div>

@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../constants';
 import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
-import { UsersIcon, ArrowLeftIcon, ArrowRightIcon } from '../components/Icons';
+import { ArrowLeftIcon, ArrowRightIcon } from '../components/Icons';
 
 // --- TYPE DEFINITIONS ---
 interface Campaign {
@@ -29,95 +29,110 @@ interface Category {
   id: number;
   category_parent: string;
 }
-interface Location {
-  id: number;
-  country_persian: string;
-}
-interface Audience {
+
+interface LocationDetails {
     id: number;
-    audience_title: string;
-    audience_color: string | null;
+    countryCode: string; // e.g., "TR"
+    persianName: string;
+    flagUrl: string;
+    commonName: string;
 }
 
 // --- PROPS ---
-interface AudienceDetailsPageProps {
-  audienceId: number;
+interface LocationDetailsPageProps {
+  locationId: number;
   onBack: () => void;
   onSelectInfluencer: (id: number) => void;
   onSelectCampaign: (id: number) => void;
 }
 
-// --- MAIN COMPONENT ---
-const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, onBack, onSelectInfluencer, onSelectCampaign }) => {
-    const { t, i18n } = useTranslation('categories');
 
-    const [audience, setAudience] = useState<Audience | null>(null);
+// --- MAIN COMPONENT ---
+const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, onBack, onSelectInfluencer, onSelectCampaign }) => {
+    const { t, i18n } = useTranslation('explore');
+
+    const [location, setLocation] = useState<LocationDetails | null>(null);
     const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    
+
+
     useEffect(() => {
-        const fetchAudienceData = async () => {
+        const fetchLocationData = async () => {
+            if (!locationId) return;
+
             setLoading(true);
             setError(null);
             
             try {
-                // Fetch Audience details first
-                const audienceRes = await fetch(`${API_BASE_URL}/items/audiences/${audienceId}`);
-                if (!audienceRes.ok) throw new Error('Could not fetch audience details');
-                const audienceData = await audienceRes.json();
-                setAudience(audienceData.data);
+                // 1. Fetch Location Details
+                const locationRes = await fetch(`${API_BASE_URL}/items/locations/${locationId}`);
+                if (!locationRes.ok) throw new Error('Location not found');
+                const locationData = await locationRes.json();
+                const farsigramLocation = locationData.data;
 
-                // Fetch Influencers targeting this audience
-                const [influencersRes, categoriesRes, locationsRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_audience][audiences_id][_eq]=${audienceId}&filter[status][_eq]=published`),
-                    fetch(`${API_BASE_URL}/items/categories`),
-                    fetch(`${API_BASE_URL}/items/locations`),
+                const restCountriesRes = await fetch(`https://restcountries.com/v3.1/alpha/${farsigramLocation.country}`);
+                if (!restCountriesRes.ok) throw new Error('Country details not found');
+                const restCountriesData = await restCountriesRes.json();
+                const countryDetail = restCountriesData[0];
+
+                setLocation({
+                    id: farsigramLocation.id,
+                    countryCode: farsigramLocation.country,
+                    persianName: farsigramLocation.country_persian,
+                    commonName: countryDetail.name.common,
+                    flagUrl: countryDetail.flags.svg,
+                });
+
+                // 2. Fetch Influencers and Campaigns in parallel
+                const [influencersPromise, campaignsPromise] = await Promise.all([
+                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_location][_eq]=${locationId}&filter[status][_eq]=published`),
+                    fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_location][locations_id][_eq]=${locationId}&filter[status][_eq]=published`),
                 ]);
-                if (!influencersRes.ok || !categoriesRes.ok || !locationsRes.ok) {
-                  throw new Error('Network response was not ok for influencer enrichment');
-                }
-                const influencersData = await influencersRes.json();
+                
+                // 3. Process Influencers
+                if (!influencersPromise.ok) throw new Error('Failed to fetch influencers');
+                const influencersData = await influencersPromise.json();
+
+                // Enrich influencers (could be moved to a shared hook)
+                const [categoriesRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/items/categories`),
+                ]);
+                if (!categoriesRes.ok) throw new Error('Failed to fetch categories for enrichment');
                 const categoriesData = await categoriesRes.json();
-                const locationsData = await locationsRes.json();
                 const categoriesMap = new Map<number, string>(categoriesData.data.map((c: Category) => [c.id, c.category_parent]));
-                const locationsMap = new Map<number, string>(locationsData.data.map((l: Location) => [l.id, l.country_persian]));
+
                 const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => ({
                   id: inf.id,
                   influencer_name: inf.influencer_name,
                   influencer_avatar: inf.influencer_avatar,
                   categoryName: categoriesMap.get(inf.influencer_category) || 'N/A',
-                  locationName: locationsMap.get(inf.influencer_location) || 'N/A',
+                  locationName: farsigramLocation.country_persian,
                 }));
                 setInfluencers(enrichedInfluencers);
 
-                // Fetch Campaigns targeting this audience
-                const campaignsRes = await fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_audience][audiences_id][_eq]=${audienceId}&filter[status][_eq]=published`);
-                if (!campaignsRes.ok) throw new Error('Network response was not ok for campaigns');
-                const campaignsData = await campaignsRes.json();
+                // 4. Process Campaigns
+                if (!campaignsPromise.ok) throw new Error('Failed to fetch campaigns');
+                const campaignsData = await campaignsPromise.json();
                 setCampaigns(campaignsData.data);
 
             } catch (err) {
-                console.error("Failed to fetch audience data:", err);
-                setError(t('error_loading_influencers_for_audience'));
+                console.error("Failed to fetch location data:", err);
+                setError(t('errorLoadingLocations'));
             } finally {
                 setLoading(false);
             }
         };
 
-        if (audienceId) {
-            fetchAudienceData();
-        }
-    }, [audienceId, t]);
-
-    const audienceName = audience?.audience_title || '';
-    const themeColor = audience?.audience_color || '#0D9488'; // Primary color fallback
+        fetchLocationData();
+    }, [locationId, t]);
 
     if (loading) {
         return (
-            <div className="space-y-8">
-                <div className="h-16 w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-xl animate-pulse"></div>
+             <div className="space-y-8 animate-pulse">
+                <div className="h-16 w-3/4 md:w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-xl"></div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
                          <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
@@ -132,14 +147,16 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
         )
     }
 
-     if (error || !audience) {
+    if (error || !location) {
         return (
             <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <p className="text-red-600 dark:text-red-400 font-semibold">{error || "Audience not found."}</p>
-                <button onClick={onBack} className="mt-4 font-semibold text-primary hover:text-primary-dark">{t('back_to_categories')}</button>
+                <p className="text-red-600 dark:text-red-400 font-semibold">{error || "Location not found."}</p>
+                <button onClick={onBack} className="mt-4 font-semibold text-primary hover:text-primary-dark">{t('back_to_explore')}</button>
             </div>
         );
     }
+    
+    const locationName = i18n.language === 'fa' ? location.persianName : location.commonName;
 
     return (
         <div className="space-y-8">
@@ -148,14 +165,14 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                 <button 
                     onClick={onBack}
                     className="p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors"
-                    aria-label={t('back_to_categories')}
+                    aria-label={t('back_to_explore')}
                 >
                     {i18n.dir() === 'rtl' ? <ArrowRightIcon className="w-6 h-6" /> : <ArrowLeftIcon className="w-6 h-6" />}
                 </button>
                 <div className="flex items-center gap-3 bg-white dark:bg-neutral-800/50 p-3 rounded-xl shadow-sm">
-                    <UsersIcon className="w-8 h-8" style={{ color: themeColor }}/>
+                    <img src={location.flagUrl} alt={`Flag of ${location.commonName}`} className="w-12 h-auto rounded-md border border-neutral-200 dark:border-neutral-700" />
                     <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">
-                        {t('audience_details_title', { audienceName })}
+                        {t('location_details_title', { locationName })}
                     </h1>
                 </div>
             </div>
@@ -163,28 +180,28 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                 {/* Influencers Column */}
                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
-                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('influencers_for_audience', { audienceName })}</h2>
+                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('influencers_in_location', { locationName })}</h2>
                      <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
                         {influencers.length > 0 ? (
                             influencers.map((influencer) => (
                                 <CompactInfluencerCard key={influencer.id} influencer={influencer} onSelectInfluencer={onSelectInfluencer} />
                             ))
                         ) : (
-                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_influencers_found_for_audience')}</p>
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_influencers_found_in_location')}</p>
                         )}
                      </div>
                 </div>
                 
                 {/* Campaigns Column */}
                  <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
-                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('campaigns_for_audience', { audienceName })}</h2>
+                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('campaigns_in_location', { locationName })}</h2>
                      <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
                         {campaigns.length > 0 ? (
                             campaigns.map((campaign) => (
                                 <CompactCampaignCard key={campaign.id} campaign={campaign} onSelectCampaign={onSelectCampaign} />
                             ))
                         ) : (
-                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found_for_audience')}</p>
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found_in_location')}</p>
                         )}
                      </div>
                 </div>
@@ -193,4 +210,4 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
     );
 };
 
-export default AudienceDetailsPage;
+export default LocationDetailsPage;

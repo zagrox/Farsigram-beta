@@ -11,12 +11,20 @@ export interface CombinedCountryData {
   latlng: [number, number];
 }
 
+interface CountryCardProps {
+    country: CombinedCountryData;
+    onSelect: () => void;
+}
 
 // --- SUB-COMPONENTS ---
 
-export const CountryCard: React.FC<{ country: CombinedCountryData }> = ({ country }) => {
+export const CountryCard: React.FC<CountryCardProps> = ({ country, onSelect }) => {
   return (
-    <div className="relative group flex-shrink-0 snap-start cursor-pointer" aria-label={country.commonName}>
+    <button 
+        onClick={onSelect}
+        className="relative group flex-shrink-0 snap-start cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-neutral-900 rounded-2xl" 
+        aria-label={country.commonName}
+    >
       <img 
         className="w-24 h-24 rounded-2xl object-cover border-4 border-neutral-100 dark:border-neutral-800 shadow-lg transition-transform duration-300 group-hover:scale-110" 
         src={country.flagUrl} 
@@ -31,7 +39,7 @@ export const CountryCard: React.FC<{ country: CombinedCountryData }> = ({ countr
           {country.persianName}
         </h4>
       </div>
-    </div>
+    </button>
   );
 };
 

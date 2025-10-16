@@ -24,9 +24,14 @@ interface RestCountry {
   latlng: [number, number];
 }
 
+// FIX: Added props interface to make the component interactive
+interface CountryGridProps {
+  onSelectLocation: (id: number) => void;
+}
+
 // --- MAIN COMPONENT ---
 
-const CountryGrid: React.FC = () => {
+const CountryGrid: React.FC<CountryGridProps> = ({ onSelectLocation }) => {
   const { t } = useTranslation('explore');
   const [countries, setCountries] = useState<CombinedCountryData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -93,7 +98,8 @@ const CountryGrid: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center">
-            {countries.map(country => <CountryCard key={country.id} country={country} />)}
+            {/* FIX: Passed the onSelect prop to CountryCard to handle clicks. */}
+            {countries.map(country => <CountryCard key={country.id} country={country} onSelect={() => onSelectLocation(country.id)} />)}
         </div>
       )}
     </div>

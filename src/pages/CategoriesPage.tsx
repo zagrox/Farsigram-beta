@@ -27,6 +27,7 @@ interface ApiAudience {
 interface CategoriesPageProps {
   onSelectNetwork: (networkUrl: string) => void;
   onSelectAudience: (id: number) => void;
+  onSelectCategory: (id: number) => void;
 }
 
 const hexToRgba = (hex: string | null, alpha: number): string => {
@@ -45,7 +46,7 @@ const hexToRgba = (hex: string | null, alpha: number): string => {
 };
 
 
-const CategoriesPage: React.FC<CategoriesPageProps> = ({ onSelectNetwork, onSelectAudience }) => {
+const CategoriesPage: React.FC<CategoriesPageProps> = ({ onSelectNetwork, onSelectAudience, onSelectCategory }) => {
   const { t } = useTranslation('categories');
   const [structuredCategories, setStructuredCategories] = useState<ParentCategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -199,12 +200,13 @@ const CategoriesPage: React.FC<CategoriesPageProps> = ({ onSelectNetwork, onSele
                   {parent.subcategories.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {parent.subcategories.map((sub) => (
-                        <span
+                        <button
                           key={sub.id}
+                          onClick={() => onSelectCategory(sub.id)}
                           className="text-sm text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-700/50 px-3 py-1 rounded-full cursor-pointer transition-colors hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20"
                         >
                           {sub.category_parent}
-                        </span>
+                        </button>
                       ))}
                     </div>
                   ) : (

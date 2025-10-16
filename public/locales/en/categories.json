@@ -21,5 +21,12 @@
   "no_influencers_found_for_audience": "No influencers found for this audience yet.",
   "no_campaigns_found_for_audience": "No campaigns found for this audience yet.",
   "error_loading_influencers_for_audience": "Could not load influencers for this audience.",
-  "error_loading_campaigns_for_audience": "Could not load campaigns for this audience."
+  "error_loading_campaigns_for_audience": "Could not load campaigns for this audience.",
+  "category_details_title": "Profiles in {{categoryName}}",
+  "influencers_in_category": "Influencers in {{categoryName}}",
+  "campaigns_for_category": "Campaigns for {{categoryName}}",
+  "no_influencers_found_for_category": "No influencers found for this category yet.",
+  "no_campaigns_found_for_category": "No campaigns found for this category yet.",
+  "error_loading_influencers_for_category": "Could not load influencers for this category.",
+  "error_loading_campaigns_for_category": "Could not load campaigns for this category."
 }

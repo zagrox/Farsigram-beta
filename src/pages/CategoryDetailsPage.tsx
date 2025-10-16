@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { API_BASE_URL } from '../constants';
+import { API_BASE_URL, ASSETS_URL } from '../constants';
 
 import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
-import { UsersIcon, ArrowLeftIcon, ArrowRightIcon } from '../components/Icons';
+import { ArrowLeftIcon, ArrowRightIcon } from '../components/Icons';
 
 // --- TYPE DEFINITIONS ---
 interface Campaign {
@@ -15,8 +15,6 @@ interface Campaign {
   campaign_color: string | null;
   campaign_goal: string;
   campaign_title: string;
-  campaign_slogan: string;
-  campaign_overview: string;
 }
 interface Influencer {
   id: number;
@@ -25,99 +23,96 @@ interface Influencer {
   influencer_location: number;
   influencer_avatar: string;
 }
-interface Category {
-  id: number;
-  category_parent: string;
-}
 interface Location {
   id: number;
   country_persian: string;
 }
-interface Audience {
+interface Category {
     id: number;
-    audience_title: string;
-    audience_color: string | null;
+    category_parent: string; // The name
+    category_color: string | null;
+    category_image: string | null;
 }
 
 // --- PROPS ---
-interface AudienceDetailsPageProps {
-  audienceId: number;
+interface CategoryDetailsPageProps {
+  categoryId: number;
   onBack: () => void;
   onSelectInfluencer: (id: number) => void;
   onSelectCampaign: (id: number) => void;
 }
 
 // --- MAIN COMPONENT ---
-const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, onBack, onSelectInfluencer, onSelectCampaign }) => {
+const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, onBack, onSelectInfluencer, onSelectCampaign }) => {
     const { t, i18n } = useTranslation('categories');
 
-    const [audience, setAudience] = useState<Audience | null>(null);
+    const [category, setCategory] = useState<Category | null>(null);
     const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     
     useEffect(() => {
-        const fetchAudienceData = async () => {
+        const fetchCategoryData = async () => {
+            if (!categoryId) return;
             setLoading(true);
             setError(null);
             
             try {
-                // Fetch Audience details first
-                const audienceRes = await fetch(`${API_BASE_URL}/items/audiences/${audienceId}`);
-                if (!audienceRes.ok) throw new Error('Could not fetch audience details');
-                const audienceData = await audienceRes.json();
-                setAudience(audienceData.data);
+                // 1. Fetch Category details
+                const categoryRes = await fetch(`${API_BASE_URL}/items/categories/${categoryId}`);
+                if (!categoryRes.ok) throw new Error('Could not fetch category details');
+                const categoryData = await categoryRes.json();
+                setCategory(categoryData.data);
 
-                // Fetch Influencers targeting this audience
-                const [influencersRes, categoriesRes, locationsRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_audience][audiences_id][_eq]=${audienceId}&filter[status][_eq]=published`),
-                    fetch(`${API_BASE_URL}/items/categories`),
-                    fetch(`${API_BASE_URL}/items/locations`),
+                // 2. Fetch related influencers and campaigns
+                const [influencersRes, campaignsRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_category][_eq]=${categoryId}&filter[status][_eq]=published`),
+                    fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_type][categories_id][_eq]=${categoryId}&filter[status][_eq]=published`)
                 ]);
-                if (!influencersRes.ok || !categoriesRes.ok || !locationsRes.ok) {
-                  throw new Error('Network response was not ok for influencer enrichment');
-                }
+
+                // 3. Process influencers
+                if (!influencersRes.ok) throw new Error(t('error_loading_influencers_for_category'));
                 const influencersData = await influencersRes.json();
-                const categoriesData = await categoriesRes.json();
+
+                // Enrich influencers (could be a shared hook)
+                const locationsRes = await fetch(`${API_BASE_URL}/items/locations`);
+                if (!locationsRes.ok) throw new Error('Failed to fetch locations for enrichment');
                 const locationsData = await locationsRes.json();
-                const categoriesMap = new Map<number, string>(categoriesData.data.map((c: Category) => [c.id, c.category_parent]));
                 const locationsMap = new Map<number, string>(locationsData.data.map((l: Location) => [l.id, l.country_persian]));
+
                 const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => ({
                   id: inf.id,
                   influencer_name: inf.influencer_name,
                   influencer_avatar: inf.influencer_avatar,
-                  categoryName: categoriesMap.get(inf.influencer_category) || 'N/A',
+                  categoryName: categoryData.data.category_parent,
                   locationName: locationsMap.get(inf.influencer_location) || 'N/A',
                 }));
                 setInfluencers(enrichedInfluencers);
 
-                // Fetch Campaigns targeting this audience
-                const campaignsRes = await fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_audience][audiences_id][_eq]=${audienceId}&filter[status][_eq]=published`);
-                if (!campaignsRes.ok) throw new Error('Network response was not ok for campaigns');
+                // 4. Process campaigns
+                if (!campaignsRes.ok) throw new Error(t('error_loading_campaigns_for_category'));
                 const campaignsData = await campaignsRes.json();
                 setCampaigns(campaignsData.data);
 
-            } catch (err) {
-                console.error("Failed to fetch audience data:", err);
-                setError(t('error_loading_influencers_for_audience'));
+            } catch (err: any) {
+                console.error("Failed to fetch category data:", err);
+                setError(err.message || t('error'));
             } finally {
                 setLoading(false);
             }
         };
 
-        if (audienceId) {
-            fetchAudienceData();
-        }
-    }, [audienceId, t]);
+        fetchCategoryData();
+    }, [categoryId, t]);
 
-    const audienceName = audience?.audience_title || '';
-    const themeColor = audience?.audience_color || '#0D9488'; // Primary color fallback
+    const categoryName = category?.category_parent || '';
+    const themeColor = category?.category_color || '#0D9488'; // Primary fallback
 
     if (loading) {
         return (
-            <div className="space-y-8">
-                <div className="h-16 w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-xl animate-pulse"></div>
+            <div className="space-y-8 animate-pulse">
+                <div className="h-16 w-3/4 md:w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-xl"></div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
                          <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
@@ -132,10 +127,10 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
         )
     }
 
-     if (error || !audience) {
+    if (error || !category) {
         return (
             <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <p className="text-red-600 dark:text-red-400 font-semibold">{error || "Audience not found."}</p>
+                <p className="text-red-600 dark:text-red-400 font-semibold">{error || "Category not found."}</p>
                 <button onClick={onBack} className="mt-4 font-semibold text-primary hover:text-primary-dark">{t('back_to_categories')}</button>
             </div>
         );
@@ -153,9 +148,15 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                     {i18n.dir() === 'rtl' ? <ArrowRightIcon className="w-6 h-6" /> : <ArrowLeftIcon className="w-6 h-6" />}
                 </button>
                 <div className="flex items-center gap-3 bg-white dark:bg-neutral-800/50 p-3 rounded-xl shadow-sm">
-                    <UsersIcon className="w-8 h-8" style={{ color: themeColor }}/>
-                    <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">
-                        {t('audience_details_title', { audienceName })}
+                    {category.category_image && (
+                         <img 
+                            src={`${ASSETS_URL}/${category.category_image}`} 
+                            alt={categoryName}
+                            className="w-8 h-8 object-contain"
+                         />
+                    )}
+                    <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200" style={{ color: themeColor }}>
+                        {t('category_details_title', { categoryName })}
                     </h1>
                 </div>
             </div>
@@ -163,28 +164,28 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                 {/* Influencers Column */}
                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
-                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('influencers_for_audience', { audienceName })}</h2>
+                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('influencers_in_category', { categoryName })}</h2>
                      <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
                         {influencers.length > 0 ? (
                             influencers.map((influencer) => (
                                 <CompactInfluencerCard key={influencer.id} influencer={influencer} onSelectInfluencer={onSelectInfluencer} />
                             ))
                         ) : (
-                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_influencers_found_for_audience')}</p>
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_influencers_found_for_category')}</p>
                         )}
                      </div>
                 </div>
                 
                 {/* Campaigns Column */}
                  <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
-                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('campaigns_for_audience', { audienceName })}</h2>
+                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('campaigns_for_category', { categoryName })}</h2>
                      <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
                         {campaigns.length > 0 ? (
                             campaigns.map((campaign) => (
                                 <CompactCampaignCard key={campaign.id} campaign={campaign} onSelectCampaign={onSelectCampaign} />
                             ))
                         ) : (
-                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found_for_audience')}</p>
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found_for_category')}</p>
                         )}
                      </div>
                 </div>
@@ -192,5 +193,4 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
         </div>
     );
 };
-
-export default AudienceDetailsPage;
+export default CategoryDetailsPage;

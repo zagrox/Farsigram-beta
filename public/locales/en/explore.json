@@ -2,5 +2,14 @@
   "title": "Explore",
   "loadingLocations": "Loading locations...",
   "errorLoadingLocations": "Failed to load locations. Please try again later.",
-  "communityListTitle": "Community List"
+  "communityListTitle": "Community List",
+  "location_details_title": "Profiles in {{locationName}}",
+  "influencers_in_location": "Influencers in {{locationName}}",
+  "campaigns_in_location": "Campaigns in {{locationName}}",
+  "no_influencers_found_in_location": "No influencers found for this location yet.",
+  "no_campaigns_found_in_location": "No campaigns found for this location yet.",
+  "error_loading_influencers_in_location": "Could not load influencers for this location.",
+  "error_loading_campaigns_in_location": "Could not load campaigns for this location.",
+  "back_to_explore": "Back to Explore",
+  "viewDetails": "View Details"
 }

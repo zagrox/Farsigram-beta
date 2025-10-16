@@ -1,10 +1,14 @@
 import React from 'react';
 import InteractiveMapView from '../components/ui/InteractiveMapView';
 
-const ExplorePage: React.FC = () => {
+interface ExplorePageProps {
+  onSelectLocation: (id: number) => void;
+}
+
+const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectLocation }) => {
   return (
     <div>
-      <InteractiveMapView />
+      <InteractiveMapView onSelectLocation={onSelectLocation} />
     </div>
   );
 };

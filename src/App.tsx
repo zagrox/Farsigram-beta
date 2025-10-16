@@ -8,8 +8,10 @@ import CampaignDetailsPage from './pages/CampaignDetailsPage';
 import CulturalHubPage from './pages/CulturalHubPage';
 import ExplorePage from './pages/ExplorePage';
 import CategoriesPage from './pages/CategoriesPage';
+import CategoryDetailsPage from './pages/CategoryDetailsPage';
 import NetworkDetailsPage from './pages/NetworkDetailsPage';
-import AudienceDetailsPage from './pages/AudienceDetailsPage'; // Import new page
+import AudienceDetailsPage from './pages/AudienceDetailsPage';
+import LocationDetailsPage from './pages/LocationDetailsPage'; // Import new page
 import MarketplacePage from './pages/MarketplacePage';
 import ProfilePage from './pages/ProfilePage';
 import InfluencersPage from './pages/InfluencersPage';
@@ -32,7 +34,9 @@ const App: React.FC = () => {
   const [viewingCampaignId, setViewingCampaignId] = useState<number | null>(null);
   const [viewingInfluencerId, setViewingInfluencerId] = useState<number | null>(null);
   const [viewingNetwork, setViewingNetwork] = useState<string | null>(null);
-  const [viewingAudienceId, setViewingAudienceId] = useState<number | null>(null); // State for audience details page
+  const [viewingAudienceId, setViewingAudienceId] = useState<number | null>(null);
+  const [viewingLocationId, setViewingLocationId] = useState<number | null>(null);
+  const [viewingCategoryId, setViewingCategoryId] = useState<number | null>(null);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -86,6 +90,10 @@ const App: React.FC = () => {
     if (currentPage !== Page.Categories) {
       setViewingNetwork(null);
       setViewingAudienceId(null);
+      setViewingCategoryId(null);
+    }
+    if (currentPage !== Page.Explore) {
+      setViewingLocationId(null);
     }
   }, [currentPage]);
 
@@ -103,7 +111,13 @@ const App: React.FC = () => {
   const renderPage = () => {
     switch (currentPage) {
       case Page.Home:
-        return <HomePage setCurrentPage={setCurrentPage} />;
+        return <HomePage 
+            setCurrentPage={setCurrentPage}
+            onSelectLocation={(id) => {
+              setViewingLocationId(id);
+              setCurrentPage(Page.Explore);
+            }} 
+        />;
       case Page.Campaigns:
         return viewingCampaignId ? (
           <CampaignDetailsPage 
@@ -125,7 +139,21 @@ const App: React.FC = () => {
       case Page.CulturalHub:
         return <CulturalHubPage />;
       case Page.Explore:
-        return <ExplorePage />;
+         if (viewingLocationId) {
+            return <LocationDetailsPage
+                locationId={viewingLocationId}
+                onBack={() => setViewingLocationId(null)}
+                onSelectInfluencer={(id) => {
+                    setViewingInfluencerId(id);
+                    setCurrentPage(Page.Influencers);
+                }}
+                onSelectCampaign={(id) => {
+                    setViewingCampaignId(id);
+                    setCurrentPage(Page.Campaigns);
+                }}
+            />;
+        }
+        return <ExplorePage onSelectLocation={(id) => setViewingLocationId(id)} />;
       case Page.Categories:
         if (viewingNetwork) {
           return <NetworkDetailsPage
@@ -155,16 +183,37 @@ const App: React.FC = () => {
                 }}
             />;
         }
+        if (viewingCategoryId) {
+            return <CategoryDetailsPage
+                categoryId={viewingCategoryId}
+                onBack={() => setViewingCategoryId(null)}
+                onSelectInfluencer={(id) => {
+                    setViewingInfluencerId(id);
+                    setCurrentPage(Page.Influencers);
+                }}
+                onSelectCampaign={(id) => {
+                    setViewingCampaignId(id);
+                    setCurrentPage(Page.Campaigns);
+                }}
+            />;
+        }
         return <CategoriesPage 
             onSelectNetwork={(url) => setViewingNetwork(url)}
             onSelectAudience={(id) => setViewingAudienceId(id)}
+            onSelectCategory={(id) => setViewingCategoryId(id)}
         />;
       case Page.Marketplace:
         return <MarketplacePage />;
       case Page.Profile:
         return <ProfilePage setTheme={setThemeAndStore} setSystemTheme={setSystemTheme} />;
       default:
-        return <HomePage setCurrentPage={setCurrentPage} />;
+        return <HomePage 
+          setCurrentPage={setCurrentPage}
+          onSelectLocation={(id) => {
+              setViewingLocationId(id);
+              setCurrentPage(Page.Explore);
+          }} 
+        />;
     }
   };
 

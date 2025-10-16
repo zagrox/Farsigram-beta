@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../constants';
 import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
-import { SocialIcon, ArrowLeftIcon } from '../components/Icons';
+import { SocialIcon, ArrowLeftIcon, ArrowRightIcon } from '../components/Icons';
 
 // --- TYPE DEFINITIONS (mirrored from other pages for consistency) ---
 interface Campaign {
@@ -59,7 +59,7 @@ const getSocialNetworkName = (url: string): string => {
 
 // --- MAIN COMPONENT ---
 const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onBack, onSelectInfluencer, onSelectCampaign }) => {
-    const { t } = useTranslation('categories');
+    const { t, i18n } = useTranslation('categories');
 
     const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -140,7 +140,7 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                     className="p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-300 transition-colors"
                     aria-label={t('back_to_categories')}
                 >
-                    <ArrowLeftIcon className="w-6 h-6" />
+                    {i18n.dir() === 'rtl' ? <ArrowRightIcon className="w-6 h-6" /> : <ArrowLeftIcon className="w-6 h-6" />}
                 </button>
                 <div className="flex items-center gap-3 bg-white dark:bg-neutral-800/50 p-3 rounded-xl shadow-sm">
                     <SocialIcon networkUrl={networkUrl} className="w-8 h-8 text-primary" />
