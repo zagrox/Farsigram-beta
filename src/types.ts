@@ -7,6 +7,7 @@ export enum Page {
   Marketplace,
   Profile,
   Influencers,
+  Map,
 }
 
 export enum Theme {

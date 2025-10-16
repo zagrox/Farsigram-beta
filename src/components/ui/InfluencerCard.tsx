@@ -7,6 +7,7 @@ export interface EnrichedInfluencer {
     id: number;
     influencer_avatar: string;
     influencer_name: string;
+    influencer_title: string;
     categoryName: string;
     locationName: string;
 }
@@ -35,6 +36,9 @@ const InfluencerCard: React.FC<InfluencerCardProps> = ({ influencer, onSelectInf
             </div>
             <div className="p-6 flex flex-col flex-grow">
                 <h3 id={`influencer-name-${influencer.id}`} className="text-lg font-bold text-neutral-900 dark:text-neutral-100 text-center">{influencer.influencer_name}</h3>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center mt-1 truncate" title={influencer.influencer_title}>
+                    {influencer.influencer_title}
+                </p>
                 
                 <div className="text-neutral-600 dark:text-neutral-400 mt-3 text-sm flex-grow space-y-2">
                     <div className="flex items-center gap-2 text-sm font-medium">
@@ -65,8 +69,9 @@ export const InfluencerCardSkeleton: React.FC = () => {
         <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden animate-pulse flex flex-col">
             <div className="aspect-square bg-neutral-200 dark:bg-neutral-700"></div>
             <div className="p-6 flex flex-col flex-grow">
-                <div className="h-6 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4 mb-4 mx-auto"></div>
-                <div className="flex-grow space-y-3 mt-2">
+                <div className="h-6 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4 mb-2 mx-auto"></div>
+                <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2 mb-4 mx-auto"></div>
+                <div className="flex-grow space-y-3">
                     <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded"></div>
                     <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-5/6"></div>
                 </div>

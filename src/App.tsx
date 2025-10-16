@@ -7,11 +7,12 @@ import CampaignsPage from './pages/CampaignsPage';
 import CampaignDetailsPage from './pages/CampaignDetailsPage';
 import CulturalHubPage from './pages/CulturalHubPage';
 import ExplorePage from './pages/ExplorePage';
+import MapPage from './pages/MapPage';
 import CategoriesPage from './pages/CategoriesPage';
 import CategoryDetailsPage from './pages/CategoryDetailsPage';
 import NetworkDetailsPage from './pages/NetworkDetailsPage';
 import AudienceDetailsPage from './pages/AudienceDetailsPage';
-import LocationDetailsPage from './pages/LocationDetailsPage'; // Import new page
+import LocationDetailsPage from './pages/LocationDetailsPage';
 import MarketplacePage from './pages/MarketplacePage';
 import ProfilePage from './pages/ProfilePage';
 import InfluencersPage from './pages/InfluencersPage';
@@ -92,7 +93,7 @@ const App: React.FC = () => {
       setViewingAudienceId(null);
       setViewingCategoryId(null);
     }
-    if (currentPage !== Page.Explore) {
+    if (currentPage !== Page.Map) {
       setViewingLocationId(null);
     }
   }, [currentPage]);
@@ -108,6 +109,22 @@ const App: React.FC = () => {
     setTheme(systemIsDark ? Theme.Dark : Theme.Light);
   };
 
+  const handleSidebarNavigation = (page: Page) => {
+    // This function resets the detail view for the target page, ensuring
+    // that navigation from the sidebar always goes to the main list/view.
+    // This allows clicking the active link to "reload" the page to its root.
+    if (page === Page.Campaigns) setViewingCampaignId(null);
+    if (page === Page.Influencers) setViewingInfluencerId(null);
+    if (page === Page.Categories) {
+        setViewingNetwork(null);
+        setViewingAudienceId(null);
+        setViewingCategoryId(null);
+    }
+    if (page === Page.Map) setViewingLocationId(null);
+    
+    setCurrentPage(page);
+  };
+
   const renderPage = () => {
     switch (currentPage) {
       case Page.Home:
@@ -115,7 +132,7 @@ const App: React.FC = () => {
             setCurrentPage={setCurrentPage}
             onSelectLocation={(id) => {
               setViewingLocationId(id);
-              setCurrentPage(Page.Explore);
+              setCurrentPage(Page.Map);
             }} 
         />;
       case Page.Campaigns:
@@ -123,6 +140,18 @@ const App: React.FC = () => {
           <CampaignDetailsPage 
             campaignId={viewingCampaignId}
             onBack={() => setViewingCampaignId(null)}
+            onSelectAudience={(id) => {
+                setViewingAudienceId(id);
+                setCurrentPage(Page.Categories);
+            }}
+            onSelectLocation={(id) => {
+                setViewingLocationId(id);
+                setCurrentPage(Page.Map);
+            }}
+            onSelectCategory={(id) => {
+                setViewingCategoryId(id);
+                setCurrentPage(Page.Categories);
+            }}
           />
         ) : (
           <CampaignsPage onSelectCampaign={(id) => setViewingCampaignId(id)} />
@@ -132,6 +161,18 @@ const App: React.FC = () => {
           <InfluencerDetailsPage
             influencerId={viewingInfluencerId}
             onBack={() => setViewingInfluencerId(null)}
+            onSelectAudience={(id) => {
+                setViewingAudienceId(id);
+                setCurrentPage(Page.Categories);
+            }}
+            onSelectLocation={(id) => {
+                setViewingLocationId(id);
+                setCurrentPage(Page.Map);
+            }}
+            onSelectCategory={(id) => {
+                setViewingCategoryId(id);
+                setCurrentPage(Page.Categories);
+            }}
           />
         ) : (
           <InfluencersPage onSelectInfluencer={(id) => setViewingInfluencerId(id)} />
@@ -139,6 +180,17 @@ const App: React.FC = () => {
       case Page.CulturalHub:
         return <CulturalHubPage />;
       case Page.Explore:
+        return <ExplorePage 
+          onSelectInfluencer={(id) => {
+            setViewingInfluencerId(id);
+            setCurrentPage(Page.Influencers);
+          }}
+          onSelectCampaign={(id) => {
+            setViewingCampaignId(id);
+            setCurrentPage(Page.Campaigns);
+          }}
+        />
+      case Page.Map:
          if (viewingLocationId) {
             return <LocationDetailsPage
                 locationId={viewingLocationId}
@@ -153,7 +205,7 @@ const App: React.FC = () => {
                 }}
             />;
         }
-        return <ExplorePage onSelectLocation={(id) => setViewingLocationId(id)} />;
+        return <MapPage onSelectLocation={(id) => setViewingLocationId(id)} />;
       case Page.Categories:
         if (viewingNetwork) {
           return <NetworkDetailsPage
@@ -211,7 +263,7 @@ const App: React.FC = () => {
           setCurrentPage={setCurrentPage}
           onSelectLocation={(id) => {
               setViewingLocationId(id);
-              setCurrentPage(Page.Explore);
+              setCurrentPage(Page.Map);
           }} 
         />;
     }
@@ -225,7 +277,7 @@ const App: React.FC = () => {
     <div className="relative min-h-screen bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 font-sans">
       <Sidebar 
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        setCurrentPage={handleSidebarNavigation}
         isCollapsed={isSidebarCollapsed}
         setSidebarCollapsed={setSidebarCollapsed}
       />

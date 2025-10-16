@@ -144,7 +144,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation })
 
       {/* Explore Section */}
       <section>
-        <SectionHeader title={t('exploreSectionTitle')} onViewAll={() => setCurrentPage(Page.Explore)} />
+        <SectionHeader title={t('exploreSectionTitle')} onViewAll={() => setCurrentPage(Page.Map)} />
         <div className="flex items-center gap-8 overflow-x-auto pb-4 pt-2 no-scrollbar snap-x snap-mandatory">
           {loadingLocations
             ? Array.from({ length: 20 }).map((_, i) => <CountryCardSkeleton key={i} />)

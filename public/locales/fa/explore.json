@@ -1,5 +1,11 @@
 {
-  "title": "کاوش",
+  "title": "آخرین فعالیت‌ها",
+  "recent_influencers": "اینفلوئنسرهای اخیر",
+  "recent_campaigns": "کمپین‌های اخیر",
+  "no_recent_influencers": "اینفلوئنسر جدیدی برای نمایش وجود ندارد.",
+  "no_recent_campaigns": "کمپین جدیدی برای نمایش وجود ندارد.",
+  "error_loading_influencers": "بارگذاری اینفلوئنسرهای اخیر با مشکل مواجه شد.",
+  "error_loading_campaigns": "بارگذاری کمپین‌های اخیر با مشکل مواجه شد.",
   "loadingLocations": "در حال بارگذاری مکان‌ها...",
   "errorLoadingLocations": "بارگذاری مکان‌ها با شکست مواجه شد. لطفاً بعداً دوباره امتحان کنید.",
   "communityListTitle": "فهرست جوامع",
@@ -10,6 +16,6 @@
   "no_campaigns_found_in_location": "هنوز کمپینی برای این مکان یافت نشده است.",
   "error_loading_influencers_in_location": "بارگذاری اینفلوئنسرهای این مکان با مشکل مواجه شد.",
   "error_loading_campaigns_in_location": "بارگذاری کمپین‌های این مکان با مشکل مواجه شد.",
-  "back_to_explore": "بازگشت به کاوش",
+  "back_to_explore": "بازگشت به نقشه",
   "viewDetails": "مشاهده جزئیات"
 }

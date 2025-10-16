@@ -29,6 +29,7 @@ import {
   LinkIcon,
   ShareIcon,
   GiftIcon,
+  NewspaperIcon,
 } from '@heroicons/react/24/outline';
 
 // Re-exporting from Heroicons with aliases to maintain consistency
@@ -36,7 +37,8 @@ export {
   HomeIcon,
   MegaphoneIcon as CampaignIcon,
   SparklesIcon as CultureIcon,
-  GlobeEuropeAfricaIcon as ExploreIcon,
+  NewspaperIcon as ExploreIcon,
+  GlobeEuropeAfricaIcon as MapIcon,
   Squares2X2Icon as CategoryIcon,
   ShoppingBagIcon as MarketplaceIcon,
   ChatBubbleOvalLeftEllipsisIcon as MessageIcon,

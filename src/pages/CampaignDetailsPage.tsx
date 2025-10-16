@@ -32,16 +32,24 @@ interface Campaign {
   date_updated: string;
 }
 
+interface RelatedItem {
+    id: number;
+    name: string;
+}
+
 interface RelatedData {
-    audience: string[];
-    locations: string[];
-    types: string[];
+    audience: RelatedItem[];
+    locations: RelatedItem[];
+    types: RelatedItem[];
     socials: SocialProfile[];
 }
 
 interface CampaignDetailsPageProps {
   campaignId: number;
   onBack: () => void;
+  onSelectAudience: (id: number) => void;
+  onSelectLocation: (id: number) => void;
+  onSelectCategory: (id: number) => void;
 }
 
 // --- HELPER FUNCTIONS & COMPONENTS ---
@@ -81,7 +89,7 @@ const CampaignDetailsSkeleton: React.FC = () => (
 
 // --- MAIN COMPONENT ---
 
-const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, onBack }) => {
+const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, onBack, onSelectAudience, onSelectLocation, onSelectCategory }) => {
   const { t, i18n } = useTranslation('campaigns');
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [relatedData, setRelatedData] = useState<RelatedData | null>(null);
@@ -101,17 +109,17 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
 
         const socials: SocialProfile[] = camp.campaign_social?.map(item => item.socials_id).filter(Boolean) || [];
 
-        const fetchRelated = async (endpoint: string, ids: number[], key?: string) => {
+        const fetchRelated = async (endpoint: string, ids: number[], nameKey: string): Promise<RelatedItem[]> => {
             if (!ids || ids.length === 0) return [];
             try {
-                const res = await fetch(`${API_BASE_URL}/items/${endpoint}?filter[id][_in]=${ids.join(',')}`);
+                const res = await fetch(`${API_BASE_URL}/items/${endpoint}?fields=id,${nameKey}&filter[id][_in]=${ids.join(',')}`);
                 if (!res.ok) {
                     console.warn(`API request for ${endpoint} failed with status ${res.status}`);
                     return [];
                 }
                 const data = await res.json();
                 if (data && Array.isArray(data.data)) {
-                    return key ? data.data.map((item: any) => item[key] || `ID: ${item.id}`) : data.data;
+                    return data.data.map((item: any) => ({ id: item.id, name: item[nameKey] || `ID: ${item.id}` }));
                 }
                 return [];
             } catch (error) {
@@ -189,7 +197,15 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
         {relatedData?.audience?.length > 0 && (
              <InfoBlock icon={<UsersIcon />} label={t('audience')} color={themeColor}>
                 <div className="flex flex-wrap gap-2">
-                    {relatedData.audience.map(item => <span key={item} className="text-xs font-medium bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-3 py-1 rounded-full">{item}</span>)}
+                    {relatedData.audience.map(item => (
+                        <button 
+                            key={item.id} 
+                            onClick={() => onSelectAudience(item.id)}
+                            className="text-xs font-medium bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-3 py-1 rounded-full hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 transition-colors"
+                        >
+                            {item.name}
+                        </button>
+                    ))}
                 </div>
             </InfoBlock>
         )}
@@ -197,7 +213,15 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
         {relatedData?.locations?.length > 0 && (
              <InfoBlock icon={<MapPinIcon />} label={t('location')} color={themeColor}>
                 <div className="flex flex-wrap gap-2">
-                    {relatedData.locations.map(item => <span key={item} className="text-xs font-medium bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-3 py-1 rounded-full">{item}</span>)}
+                    {relatedData.locations.map(item => (
+                        <button 
+                            key={item.id} 
+                            onClick={() => onSelectLocation(item.id)}
+                            className="text-xs font-medium bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-3 py-1 rounded-full hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 transition-colors"
+                        >
+                            {item.name}
+                        </button>
+                    ))}
                 </div>
             </InfoBlock>
         )}
@@ -205,7 +229,15 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
         {relatedData?.types?.length > 0 && (
              <InfoBlock icon={<TagIcon />} label={t('type')} color={themeColor}>
                 <div className="flex flex-wrap gap-2">
-                    {relatedData.types.map(item => <span key={item} className="text-xs font-medium bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-3 py-1 rounded-full">{item}</span>)}
+                    {relatedData.types.map(item => (
+                        <button 
+                            key={item.id} 
+                            onClick={() => onSelectCategory(item.id)}
+                            className="text-xs font-medium bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-3 py-1 rounded-full hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 transition-colors"
+                        >
+                            {item.name}
+                        </button>
+                    ))}
                 </div>
             </InfoBlock>
         )}

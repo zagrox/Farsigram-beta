@@ -18,6 +18,8 @@ interface InfluencerSocialJunction {
 interface Influencer {
   id: number;
   influencer_name: string;
+  influencer_title: string;
+  influencer_bio: string;
   influencer_category: number;
   influencer_location: number;
   influencer_gender: "male" | "female" | "other";
@@ -28,15 +30,24 @@ interface Influencer {
   influencer_social: InfluencerSocialJunction[];
 }
 
+interface RelatedItem {
+  id: number;
+  name: string;
+}
+
 interface RelatedData {
-    category: string;
-    location: string;
-    audience: string[];
+    category: RelatedItem | null;
+    location: RelatedItem | null;
+    audience: RelatedItem[];
     socials: SocialProfile[];
 }
+
 interface InfluencerDetailsPageProps {
   influencerId: number;
   onBack: () => void;
+  onSelectAudience: (id: number) => void;
+  onSelectLocation: (id: number) => void;
+  onSelectCategory: (id: number) => void;
 }
 
 // --- HELPER COMPONENTS ---
@@ -69,7 +80,7 @@ const InfluencerDetailsSkeleton: React.FC = () => (
 );
 
 // --- MAIN COMPONENT ---
-const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influencerId, onBack }) => {
+const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influencerId, onBack, onSelectAudience, onSelectLocation, onSelectCategory }) => {
   const { t } = useTranslation('influencers');
   const [influencer, setInfluencer] = useState<Influencer | null>(null);
   const [relatedData, setRelatedData] = useState<RelatedData | null>(null);
@@ -89,20 +100,37 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
         
         const socials: SocialProfile[] = inf.influencer_social?.map(item => item.socials_id).filter(Boolean) || [];
 
-        const fetchSingleItem = async (endpoint: string, id: number, key: string) => {
-            if (!id) return 'N/A';
-            const res = await fetch(`${API_BASE_URL}/items/${endpoint}/${id}`);
-            if (!res.ok) return 'N/A';
-            const data = await res.json();
-            return data.data?.[key] || 'N/A';
+        const fetchSingleItem = async (endpoint: string, id: number, nameKey: string): Promise<RelatedItem | null> => {
+            if (!id) return null;
+            try {
+                const res = await fetch(`${API_BASE_URL}/items/${endpoint}/${id}?fields=id,${nameKey}`);
+                if (!res.ok) return null;
+                const data = await res.json();
+                const item = data.data;
+                if (item) {
+                    return { id: item.id, name: item[nameKey] || `ID: ${item.id}` };
+                }
+                return null;
+            } catch (err) {
+                console.error(`Failed to fetch single item from ${endpoint}:`, err);
+                return null;
+            }
         };
 
-        const fetchMultipleItems = async (endpoint: string, ids: number[], key?: string) => {
+        const fetchMultipleItems = async (endpoint: string, ids: number[], nameKey: string): Promise<RelatedItem[]> => {
             if (!ids || ids.length === 0) return [];
-            const res = await fetch(`${API_BASE_URL}/items/${endpoint}?filter[id][_in]=${ids.join(',')}`);
-            if (!res.ok) return [];
-            const data = await res.json();
-            return key ? data.data.map((item: any) => item[key]) : data.data;
+            try {
+                const res = await fetch(`${API_BASE_URL}/items/${endpoint}?fields=id,${nameKey}&filter[id][_in]=${ids.join(',')}`);
+                if (!res.ok) return [];
+                const data = await res.json();
+                if (data && Array.isArray(data.data)) {
+                    return data.data.map((item: any) => ({ id: item.id, name: item[nameKey] || `ID: ${item.id}` }));
+                }
+                return [];
+            } catch (err) {
+                console.error(`Failed to fetch multiple items from ${endpoint}:`, err);
+                return [];
+            }
         };
 
         const [category, location, audience] = await Promise.all([
@@ -161,6 +189,9 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
             />
             <div className="text-center md:text-left">
                 <h1 className="text-3xl lg:text-4xl font-bold">{influencer.influencer_name}</h1>
+                {influencer.influencer_title && (
+                    <p className="text-lg text-neutral-600 dark:text-neutral-400 mt-1">{influencer.influencer_title}</p>
+                )}
                 {influencer.influencer_hub && (
                     <span className="mt-2 inline-block bg-secondary/20 text-secondary-dark font-bold text-xs px-3 py-1 rounded-full">
                         {t('partOfHub')}
@@ -173,10 +204,28 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
       {/* Info Grid Section */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <InfoBlock icon={<CategoryIcon />} label={t('category')}>
-            <p className="font-bold text-neutral-800 dark:text-neutral-200">{relatedData?.category}</p>
+            {relatedData?.category ? (
+                <button 
+                    onClick={() => onSelectCategory(relatedData.category!.id)}
+                    className="font-bold text-neutral-800 dark:text-neutral-200 text-left hover:text-primary dark:hover:text-primary-light transition-colors"
+                >
+                    {relatedData.category.name}
+                </button>
+            ) : (
+                <p className="font-bold text-neutral-800 dark:text-neutral-200">N/A</p>
+            )}
         </InfoBlock>
         <InfoBlock icon={<MapPinIcon />} label={t('location')}>
-            <p className="font-bold text-neutral-800 dark:text-neutral-200">{relatedData?.location}</p>
+            {relatedData?.location ? (
+                 <button 
+                    onClick={() => onSelectLocation(relatedData.location!.id)}
+                    className="font-bold text-neutral-800 dark:text-neutral-200 text-left hover:text-primary dark:hover:text-primary-light transition-colors"
+                >
+                    {relatedData.location.name}
+                </button>
+            ) : (
+                <p className="font-bold text-neutral-800 dark:text-neutral-200">N/A</p>
+            )}
         </InfoBlock>
         <InfoBlock icon={<GiftIcon />} label={t('age')}>
             <p className="font-bold text-neutral-800 dark:text-neutral-200">{calculateAge(influencer.influencer_birthdate)}</p>
@@ -193,7 +242,13 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
                 <h3 className="text-lg font-bold mb-3 text-neutral-800 dark:text-neutral-200">{t('audience')}</h3>
                 <div className="flex flex-wrap gap-3">
                     {relatedData.audience.map(aud => (
-                        <span key={aud} className="text-sm font-medium bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-4 py-2 rounded-full">{aud}</span>
+                        <button 
+                            key={aud.id} 
+                            onClick={() => onSelectAudience(aud.id)}
+                            className="text-sm font-medium bg-neutral-100 dark:bg-neutral-700/50 text-neutral-700 dark:text-neutral-300 px-4 py-2 rounded-full hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 transition-colors"
+                        >
+                            {aud.name}
+                        </button>
                     ))}
                 </div>
             </div>
@@ -215,6 +270,15 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
                             <span className="font-medium text-sm">{social.social_account}</span>
                         </a>
                     ))}
+                </div>
+            </div>
+        )}
+
+        {influencer.influencer_bio && (
+            <div className="mt-8 pt-8 border-t border-neutral-200 dark:border-neutral-700">
+                <h3 className="text-lg font-bold mb-3 text-neutral-800 dark:text-neutral-200">{t('bio')}</h3>
+                <div className="prose prose-neutral dark:prose-invert max-w-none whitespace-pre-wrap text-neutral-600 dark:text-neutral-300">
+                    <p>{influencer.influencer_bio}</p>
                 </div>
             </div>
         )}

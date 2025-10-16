@@ -15,6 +15,7 @@ const pageInfo: Record<Page, { ns: string; titleKey: string }> = {
   [Page.Campaigns]: { ns: 'campaigns', titleKey: 'title' },
   [Page.CulturalHub]: { ns: 'culturalhub', titleKey: 'title' },
   [Page.Explore]: { ns: 'explore', titleKey: 'title' },
+  [Page.Map]: { ns: 'map', titleKey: 'title' },
   [Page.Categories]: { ns: 'categories', titleKey: 'title' },
   [Page.Marketplace]: { ns: 'marketplace', titleKey: 'title' },
   [Page.Profile]: { ns: 'profile', titleKey: 'title' },

@@ -1,5 +1,11 @@
 {
-  "title": "Explore",
+  "title": "Latest Activity",
+  "recent_influencers": "Recent Influencers",
+  "recent_campaigns": "Recent Campaigns",
+  "no_recent_influencers": "No recent influencers to show.",
+  "no_recent_campaigns": "No recent campaigns to show.",
+  "error_loading_influencers": "Could not load recent influencers.",
+  "error_loading_campaigns": "Could not load recent campaigns.",
   "loadingLocations": "Loading locations...",
   "errorLoadingLocations": "Failed to load locations. Please try again later.",
   "communityListTitle": "Community List",
@@ -10,6 +16,6 @@
   "no_campaigns_found_in_location": "No campaigns found for this location yet.",
   "error_loading_influencers_in_location": "Could not load influencers for this location.",
   "error_loading_campaigns_in_location": "Could not load campaigns for this location.",
-  "back_to_explore": "Back to Explore",
+  "back_to_explore": "Back to Map",
   "viewDetails": "View Details"
 }

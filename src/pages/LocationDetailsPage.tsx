@@ -21,6 +21,7 @@ interface Campaign {
 interface Influencer {
   id: number;
   influencer_name: string;
+  influencer_title: string;
   influencer_category: number;
   influencer_location: number;
   influencer_avatar: string;
@@ -107,6 +108,7 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                 const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => ({
                   id: inf.id,
                   influencer_name: inf.influencer_name,
+                  influencer_title: inf.influencer_title,
                   influencer_avatar: inf.influencer_avatar,
                   categoryName: categoriesMap.get(inf.influencer_category) || 'N/A',
                   locationName: farsigramLocation.country_persian,

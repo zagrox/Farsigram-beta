@@ -1,6 +1,5 @@
 import React from 'react';
 import { ASSETS_URL } from '../../constants';
-import { CategoryIcon } from '../Icons';
 import { EnrichedInfluencer } from './InfluencerCard';
 
 interface CompactInfluencerCardProps {
@@ -24,10 +23,9 @@ const CompactInfluencerCard: React.FC<CompactInfluencerCardProps> = ({ influence
             />
             <div className="flex-grow overflow-hidden">
                 <h3 className="font-bold text-neutral-800 dark:text-neutral-200 truncate">{influencer.influencer_name}</h3>
-                <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-                    <CategoryIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="truncate">{influencer.categoryName}</span>
-                </div>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate mt-1" title={influencer.influencer_title}>
+                    {influencer.influencer_title}
+                </p>
             </div>
         </button>
     );
@@ -39,7 +37,7 @@ export const CompactInfluencerCardSkeleton: React.FC = () => {
             <div className="w-14 h-14 rounded-full bg-neutral-200 dark:bg-neutral-700 flex-shrink-0"></div>
             <div className="flex-grow space-y-2">
                 <div className="h-5 bg-neutral-200 dark:bg-neutral-700 rounded w-3/4"></div>
-                <div className="h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2"></div>
+                <div className="h-4 bg-neutral-200 dark:bg-neutral-700 rounded w-1/2"></div>
             </div>
         </div>
     );

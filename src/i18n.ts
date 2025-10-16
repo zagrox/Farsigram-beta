@@ -20,6 +20,7 @@ i18n
       'notifications',
       'profile',
       'influencers',
+      'map',
     ],
     defaultNS: 'common',
     backend: {
