@@ -25,6 +25,9 @@ interface Influencer {
   influencer_category: number;
   influencer_location: number;
   influencer_avatar: string;
+  influencer_hub: boolean;
+  influencer_social: { socials_id: { id: number; social_network: string; social_account: string; } }[];
+  influencer_audience: { audiences_id: { id: number; audience_title: string; } }[];
 }
 interface Category {
   id: number;
@@ -79,17 +82,18 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                 const restCountriesData = await restCountriesRes.json();
                 const countryDetail = restCountriesData[0];
 
-                setLocation({
+                const currentLocation = {
                     id: farsigramLocation.id,
                     countryCode: farsigramLocation.country,
                     persianName: farsigramLocation.country_persian,
                     commonName: countryDetail.name.common,
                     flagUrl: countryDetail.flags.svg,
-                });
+                };
+                setLocation(currentLocation);
 
                 // 2. Fetch Influencers and Campaigns in parallel
                 const [influencersPromise, campaignsPromise] = await Promise.all([
-                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_location][_eq]=${locationId}&filter[status][_eq]=published`),
+                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_location][_eq]=${locationId}&filter[status][_eq]=published&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*`),
                     fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_location][locations_id][_eq]=${locationId}&filter[status][_eq]=published`),
                 ]);
                 
@@ -99,7 +103,7 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
 
                 // Enrich influencers (could be moved to a shared hook)
                 const [categoriesRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/items/categories`),
+                    fetch(`${API_BASE_URL}/items/categories?fields=id,category_parent&limit=-1`),
                 ]);
                 if (!categoriesRes.ok) throw new Error('Failed to fetch categories for enrichment');
                 const categoriesData = await categoriesRes.json();
@@ -111,7 +115,13 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                   influencer_title: inf.influencer_title,
                   influencer_avatar: inf.influencer_avatar,
                   categoryName: categoriesMap.get(inf.influencer_category) || 'N/A',
-                  locationName: farsigramLocation.country_persian,
+                  locationName: i18n.language === 'fa' ? currentLocation.persianName : currentLocation.commonName,
+                  isHubMember: inf.influencer_hub || false,
+                  socials: inf.influencer_social?.map(j => j.socials_id).filter(Boolean) || [],
+                  audiences: inf.influencer_audience?.map(j => ({
+                    id: j.audiences_id.id,
+                    name: j.audiences_id.audience_title,
+                  })).filter(a => a.id && a.name) || [],
                 }));
                 setInfluencers(enrichedInfluencers);
 
@@ -129,7 +139,7 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
         };
 
         fetchLocationData();
-    }, [locationId, t]);
+    }, [locationId, t, i18n.language]);
 
     if (loading) {
         return (

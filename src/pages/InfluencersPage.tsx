@@ -11,6 +11,17 @@ import { getSocialNetworkName } from '../utils/socialUtils';
 
 
 // Raw types from API
+interface SocialProfile {
+  id: number;
+  social_network: string;
+  social_account: string;
+}
+
+interface AudienceProfile {
+  id: number;
+  audience_title: string;
+}
+
 interface Influencer {
   id: number;
   status: string;
@@ -19,6 +30,9 @@ interface Influencer {
   influencer_category: number;
   influencer_location: number;
   influencer_avatar: string;
+  influencer_hub: boolean;
+  influencer_social: { socials_id: SocialProfile }[];
+  influencer_audience: { audiences_id: AudienceProfile }[];
 }
 interface ApiItem {
   id: number;
@@ -28,13 +42,19 @@ interface ApiSocialItem {
   id: string;
   name: string;
 }
+interface LocationApiItem {
+    id: number;
+    persianName: string;
+    englishName: string;
+}
+
 
 interface InfluencersPageProps {
   onSelectInfluencer: (id: number) => void;
 }
 
 const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer }) => {
-  const { t } = useTranslation('influencers');
+  const { t, i18n } = useTranslation('influencers');
   const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
   const [layout, setLayout] = useState<Layout>('card');
   
@@ -45,7 +65,7 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
 
   // Filter dropdown data
   const [categories, setCategories] = useState<ApiItem[]>([]);
-  const [locations, setLocations] = useState<ApiItem[]>([]);
+  const [locations, setLocations] = useState<LocationApiItem[]>([]);
   const [audiences, setAudiences] = useState<ApiItem[]>([]);
   const [socialNetworks, setSocialNetworks] = useState<ApiSocialItem[]>([]);
 
@@ -57,6 +77,7 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
     socialNetworkUrl: '',
     gender: 'all',
     isHubMember: false,
+    searchTerm: '',
   });
 
   const handleFilterChange = (newFilters: Partial<InfluencerFilterState>) => {
@@ -70,7 +91,7 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
         try {
             const [categoriesRes, locationsRes, audiencesRes, socialsRes] = await Promise.all([
                 fetch(`${API_BASE_URL}/items/categories?filter[status][_eq]=published&fields=id,category_parent&limit=-1`),
-                fetch(`${API_BASE_URL}/items/locations?fields=id,country_persian&limit=-1`),
+                fetch(`${API_BASE_URL}/items/locations?fields=id,country_persian,country&limit=-1`),
                 fetch(`${API_BASE_URL}/items/audiences?filter[status][_eq]=published&fields=id,audience_title&limit=-1`),
                 fetch(`${API_BASE_URL}/items/socials?fields=social_network&limit=-1`),
             ]);
@@ -84,7 +105,23 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
             const socialsData = await socialsRes.json();
 
             setCategories(categoriesData.data.map((c: { id: number; category_parent: string }) => ({ id: c.id, name: c.category_parent })));
-            setLocations(locationsData.data.map((l: { id: number; country_persian: string }) => ({ id: l.id, name: l.country_persian })));
+            
+            const farsigramLocations: {id: number, country_persian: string, country: string}[] = locationsData.data;
+            const detailPromises = farsigramLocations.map(loc =>
+                fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
+            );
+            const detailsResults = await Promise.all(detailPromises);
+
+            const combinedLocations = farsigramLocations.map((loc, index) => {
+                const detail = detailsResults[index]?.[0];
+                return {
+                    id: loc.id,
+                    persianName: loc.country_persian,
+                    englishName: detail?.name?.common || loc.country_persian
+                };
+            });
+            setLocations(combinedLocations);
+            
             setAudiences(audiencesData.data.map((a: { id: number; audience_title: string }) => ({ id: a.id, name: a.audience_title })));
 
             const allSocialLinks: { social_network: string }[] = socialsData.data;
@@ -103,7 +140,7 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
 
   // Memoize maps for enriching influencer data
   const categoriesMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
-  const locationsMap = useMemo(() => new Map(locations.map(l => [l.id, l.name])), [locations]);
+  const locationsMap = useMemo(() => new Map(locations.map(l => [l.id, {persian: l.persianName, english: l.englishName}])), [locations]);
 
   // Fetch influencers based on filters
   useEffect(() => {
@@ -111,13 +148,39 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
       setLoading(true);
       setError(null);
       
-      let url = `${API_BASE_URL}/items/influencers?filter[status][_eq]=published&sort=-date_created`;
-      if (filters.categoryId) url += `&filter[influencer_category][_eq]=${filters.categoryId}`;
-      if (filters.locationId) url += `&filter[influencer_location][_eq]=${filters.locationId}`;
-      if (filters.audienceId) url += `&filter[influencer_audience][audiences_id][_eq]=${filters.audienceId}`;
-      if (filters.socialNetworkUrl) url += `&filter[influencer_social][socials_id][social_network][_eq]=${filters.socialNetworkUrl}`;
-      if (filters.gender !== 'all') url += `&filter[influencer_gender][_eq]=${filters.gender}`;
-      if (filters.isHubMember) url += `&filter[influencer_hub][_eq]=true`;
+      const baseUrl = `${API_BASE_URL}/items/influencers?sort=-date_created&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*`;
+      
+      const filterConditions: any[] = [{ status: { _eq: 'published' } }];
+
+      if (filters.searchTerm) {
+        filterConditions.push({
+          _or: [
+            { influencer_name: { _icontains: filters.searchTerm } },
+            { influencer_title: { _icontains: filters.searchTerm } },
+          ],
+        });
+      }
+      if (filters.categoryId) {
+        filterConditions.push({ influencer_category: { _eq: filters.categoryId } });
+      }
+      if (filters.locationId) {
+        filterConditions.push({ influencer_location: { _eq: filters.locationId } });
+      }
+      if (filters.audienceId) {
+        filterConditions.push({ influencer_audience: { audiences_id: { _eq: filters.audienceId } } });
+      }
+      if (filters.socialNetworkUrl) {
+        filterConditions.push({ influencer_social: { socials_id: { social_network: { _eq: filters.socialNetworkUrl } } } });
+      }
+      if (filters.gender !== 'all') {
+        filterConditions.push({ influencer_gender: { _eq: filters.gender } });
+      }
+      if (filters.isHubMember) {
+        filterConditions.push({ influencer_hub: { _eq: true } });
+      }
+
+      const filterObject = { _and: filterConditions };
+      const url = `${baseUrl}&filter=${encodeURIComponent(JSON.stringify(filterObject))}`;
 
       try {
         const influencersRes = await fetch(url);
@@ -127,14 +190,27 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
 
         const influencersData = await influencersRes.json();
 
-        const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => ({
-          id: inf.id,
-          influencer_name: inf.influencer_name,
-          influencer_title: inf.influencer_title,
-          influencer_avatar: inf.influencer_avatar,
-          categoryName: categoriesMap.get(inf.influencer_category) || 'N/A',
-          locationName: locationsMap.get(inf.influencer_location) || 'N/A',
-        }));
+        const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => {
+          const locationInfo = locationsMap.get(inf.influencer_location);
+          const locationName = i18n.language === 'fa' 
+            ? (locationInfo?.persian || 'N/A') 
+            : (locationInfo?.english || locationInfo?.persian || 'N/A');
+
+          return {
+            id: inf.id,
+            influencer_name: inf.influencer_name,
+            influencer_title: inf.influencer_title,
+            influencer_avatar: inf.influencer_avatar,
+            categoryName: categoriesMap.get(inf.influencer_category) || 'N/A',
+            locationName: locationName,
+            isHubMember: inf.influencer_hub || false,
+            socials: inf.influencer_social?.map(j => j.socials_id).filter(Boolean) || [],
+            audiences: inf.influencer_audience?.map(j => ({
+              id: j.audiences_id.id,
+              name: j.audiences_id.audience_title,
+            })).filter(a => a.id && a.name) || [],
+          };
+        });
 
         setInfluencers(enrichedInfluencers);
       } catch (err) {
@@ -148,7 +224,7 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
     if (!loadingFilters) {
         fetchFilteredInfluencers();
     }
-  }, [filters, t, categoriesMap, locationsMap, loadingFilters]);
+  }, [filters, t, i18n.language, categoriesMap, locationsMap, loadingFilters]);
 
   const renderSkeletons = () => {
     const skeletonCount = 12;
@@ -182,7 +258,7 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
         filters={filters}
         onFilterChange={handleFilterChange}
         categories={categories}
-        locations={locations}
+        locations={locations.map(l => ({ id: l.id, name: i18n.language === 'fa' ? l.persianName : l.englishName }))}
         audiences={audiences}
         socialNetworks={socialNetworks}
         loading={loading || loadingFilters}

@@ -31,5 +31,6 @@
   "layout_card": "Card View",
   "layout_list": "List View",
   "layout_image": "Image View",
-  "related_influencers": "Related Influencers"
+  "related_influencers": "Related Influencers",
+  "filter_search_placeholder": "Search by name or title..."
 }

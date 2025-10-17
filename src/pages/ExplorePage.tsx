@@ -23,6 +23,9 @@ interface Influencer {
   influencer_category: number;
   influencer_location: number;
   influencer_avatar: string;
+  influencer_hub: boolean;
+  influencer_social: { socials_id: { id: number; social_network: string; social_account: string; } }[];
+  influencer_audience: { audiences_id: { id: number; audience_title: string; } }[];
 }
 interface ApiCategory {
   id: number;
@@ -34,6 +37,7 @@ interface ApiAudience {
 }
 interface Location {
   id: number;
+  country: string;
   country_persian: string;
 }
 
@@ -44,7 +48,7 @@ interface ExplorePageProps {
 }
 
 const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectCampaign }) => {
-    const { t } = useTranslation('explore');
+    const { t, i18n } = useTranslation('explore');
 
     const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -118,22 +122,27 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
         const fetchFilteredInfluencers = async () => {
             setLoadingInfluencers(true);
             
-            let url = `${API_BASE_URL}/items/influencers?filter[status][_eq]=published&limit=20&sort=-date_created`;
+            const baseUrl = `${API_BASE_URL}/items/influencers?limit=20&sort=-date_created&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*`;
+            
+            const filterConditions: any[] = [{ status: { _eq: 'published' } }];
             if (filters.audienceId) {
-                url += `&filter[influencer_audience][audiences_id][_eq]=${filters.audienceId}`;
+                filterConditions.push({ influencer_audience: { audiences_id: { _eq: filters.audienceId } } });
             }
             if (filters.categoryId) {
-                url += `&filter[influencer_category][_eq]=${filters.categoryId}`;
+                filterConditions.push({ influencer_category: { _eq: filters.categoryId } });
             }
             if (filters.socialNetworkUrl) {
-                url += `&filter[influencer_social][socials_id][social_network][_eq]=${filters.socialNetworkUrl}`;
+                filterConditions.push({ influencer_social: { socials_id: { social_network: { _eq: filters.socialNetworkUrl } } } });
             }
+
+            const filterObject = { _and: filterConditions };
+            const url = `${baseUrl}&filter=${encodeURIComponent(JSON.stringify(filterObject))}`;
 
             try {
                 // We need locations to enrich the data, so let's fetch them
                 const [influencersRes, locationsRes] = await Promise.all([
                     fetch(url),
-                    fetch(`${API_BASE_URL}/items/locations`),
+                    fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&limit=-1`),
                 ]);
         
                 if (!influencersRes.ok || !locationsRes.ok) {
@@ -143,16 +152,41 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
                 const influencersData = await influencersRes.json();
                 const locationsData = await locationsRes.json();
         
-                const locationsMap = new Map<number, string>(locationsData.data.map((l: Location) => [l.id, l.country_persian]));
-        
-                const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => ({
-                  id: inf.id,
-                  influencer_name: inf.influencer_name,
-                  influencer_title: inf.influencer_title,
-                  influencer_avatar: inf.influencer_avatar,
-                  categoryName: categoriesMap.get(inf.influencer_category) || 'N/A',
-                  locationName: locationsMap.get(inf.influencer_location) || 'N/A',
+                const farsigramLocations: Location[] = locationsData.data;
+                const detailPromises = farsigramLocations.map(loc =>
+                    fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
+                );
+                const detailsResults = await Promise.all(detailPromises);
+
+                const locationsMap = new Map(farsigramLocations.map((loc, index) => {
+                    const detail = detailsResults[index]?.[0];
+                    return [loc.id, {
+                        persian: loc.country_persian,
+                        english: detail?.name?.common || loc.country_persian
+                    }];
                 }));
+        
+                const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => {
+                    const locationInfo = locationsMap.get(inf.influencer_location);
+                    const locationName = i18n.language === 'fa' 
+                        ? (locationInfo?.persian || 'N/A') 
+                        : (locationInfo?.english || locationInfo?.persian || 'N/A');
+
+                    return {
+                      id: inf.id,
+                      influencer_name: inf.influencer_name,
+                      influencer_title: inf.influencer_title,
+                      influencer_avatar: inf.influencer_avatar,
+                      categoryName: categoriesMap.get(inf.influencer_category) || 'N/A',
+                      locationName: locationName,
+                      isHubMember: inf.influencer_hub || false,
+                      socials: inf.influencer_social?.map(j => j.socials_id).filter(Boolean) || [],
+                      audiences: inf.influencer_audience?.map(j => ({
+                        id: j.audiences_id.id,
+                        name: j.audiences_id.audience_title,
+                      })).filter(a => a.id && a.name) || [],
+                    };
+                });
         
                 setInfluencers(enrichedInfluencers);
             } catch (err) {
@@ -163,7 +197,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
         };
 
         fetchFilteredInfluencers();
-    }, [filters, categoriesMap]);
+    }, [filters, categoriesMap, i18n.language]);
 
     // Fetch Campaigns based on filters
     useEffect(() => {
@@ -176,16 +210,21 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
         const fetchFilteredCampaigns = async () => {
             setLoadingCampaigns(true);
             
-            let url = `${API_BASE_URL}/items/campaigns?filter[status][_eq]=published&sort=-date_created&limit=20`;
-             if (filters.audienceId) {
-                url += `&filter[campaign_audience][audiences_id][_eq]=${filters.audienceId}`;
+            const baseUrl = `${API_BASE_URL}/items/campaigns?sort=-date_created&limit=20`;
+            
+            const filterConditions: any[] = [{ status: { _eq: 'published' } }];
+            if (filters.audienceId) {
+                filterConditions.push({ campaign_audience: { audiences_id: { _eq: filters.audienceId } } });
             }
             if (filters.categoryId) {
-                url += `&filter[campaign_type][categories_id][_eq]=${filters.categoryId}`;
+                filterConditions.push({ campaign_type: { categories_id: { _eq: filters.categoryId } } });
             }
             if (filters.socialNetworkUrl) {
-                url += `&filter[campaign_social][socials_id][social_network][_eq]=${filters.socialNetworkUrl}`;
+                filterConditions.push({ campaign_social: { socials_id: { social_network: { _eq: filters.socialNetworkUrl } } } });
             }
+
+            const filterObject = { _and: filterConditions };
+            const url = `${baseUrl}&filter=${encodeURIComponent(JSON.stringify(filterObject))}`;
             
             try {
                 const response = await fetch(url);

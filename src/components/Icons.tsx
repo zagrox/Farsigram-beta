@@ -33,6 +33,7 @@ import {
   NewspaperIcon,
   Bars3Icon,
   PhotoIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 // Re-exporting from Heroicons with aliases to maintain consistency
@@ -68,6 +69,7 @@ export {
   GiftIcon,
   Bars3Icon,
   PhotoIcon,
+  XMarkIcon,
 };
 
 // Keep custom brand icon

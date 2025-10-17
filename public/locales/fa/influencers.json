@@ -31,5 +31,6 @@
   "layout_card": "نمای کارتی",
   "layout_list": "نمای لیستی",
   "layout_image": "نمای تصویری",
-  "related_influencers": "اینفلوئنسرهای مرتبط"
+  "related_influencers": "اینفلوئنسرهای مرتبط",
+  "filter_search_placeholder": "جستجو بر اساس نام یا عنوان..."
 }
