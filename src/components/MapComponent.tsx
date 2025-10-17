@@ -29,9 +29,10 @@ interface MapComponentProps {
   flyToLocation?: [number, number] | null;
   flyToZoom?: number;
   onSelectLocation: (id: number) => void;
+  onMarkerClick?: (country: CombinedCountryData) => void;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ countries, flyToLocation, flyToZoom = 2, onSelectLocation }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ countries, flyToLocation, flyToZoom = 2, onSelectLocation, onMarkerClick }) => {
   const { t } = useTranslation('explore');
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -73,6 +74,13 @@ const MapComponent: React.FC<MapComponentProps> = ({ countries, flyToLocation, f
       const markers = countries.map(country => {
         const marker = L.marker(country.latlng);
         
+        // Handle marker click for parent communication
+        if (onMarkerClick) {
+            marker.on('click', () => {
+                onMarkerClick(country);
+            });
+        }
+
         const popupNode = L.DomUtil.create('div');
 
         const infoContainer = L.DomUtil.create('div', 'flex items-center gap-3 p-1 font-sans', popupNode);
@@ -105,14 +113,15 @@ const MapComponent: React.FC<MapComponentProps> = ({ countries, flyToLocation, f
 
       markersRef.current = L.featureGroup(markers).addTo(map);
     }
-  }, [countries, onSelectLocation, t]);
+  }, [countries, onSelectLocation, onMarkerClick, t]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (map && flyToLocation) {
         map.flyTo(flyToLocation, flyToZoom, {
             animate: true,
-            duration: 1.5
+            duration: 1.0,
+            easeLinearity: 0.5
         });
     }
   }, [flyToLocation, flyToZoom]);

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { GiftIcon, UsersIcon, MapPinIcon, CategoryIcon, SocialIcon } from '../components/Icons';
 import { API_BASE_URL, ASSETS_URL } from '../constants';
 import Button from '../components/ui/Button';
+import RelatedInfluencers from '../components/ui/RelatedInfluencers';
 
 // --- TYPE DEFINITIONS ---
 interface SocialProfile {
@@ -22,7 +23,7 @@ interface Influencer {
   influencer_bio: string;
   influencer_category: number;
   influencer_location: number;
-  influencer_gender: "male" | "female" | "other";
+  influencer_gender: "male" | "female" | "trans";
   influencer_birthdate: string;
   influencer_hub: boolean;
   influencer_avatar: string;
@@ -35,9 +36,14 @@ interface RelatedItem {
   name: string;
 }
 
+interface LocationRelatedItem extends RelatedItem {
+    flagUrl?: string;
+    englishName?: string;
+}
+
 interface RelatedData {
     category: RelatedItem | null;
-    location: RelatedItem | null;
+    location: LocationRelatedItem | null;
     audience: RelatedItem[];
     socials: SocialProfile[];
 }
@@ -48,16 +54,17 @@ interface InfluencerDetailsPageProps {
   onSelectAudience: (id: number) => void;
   onSelectLocation: (id: number) => void;
   onSelectCategory: (id: number) => void;
+  onSelectInfluencer: (id: number) => void;
 }
 
 // --- HELPER COMPONENTS ---
 const InfoBlock: React.FC<{ icon: React.ReactNode; label: string; children: React.ReactNode }> = ({ icon, label, children }) => (
-    <div className="bg-white dark:bg-neutral-800/50 p-4 rounded-xl shadow-md">
-        <div className="flex items-center gap-2 mb-2">
+    <div className="bg-white dark:bg-neutral-800/50 p-4 rounded-xl shadow-md flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 whitespace-nowrap">
             <div className="flex-shrink-0 w-5 h-5 text-primary">{icon}</div>
             <h4 className="font-semibold text-neutral-600 dark:text-neutral-400 text-sm uppercase tracking-wider">{label}</h4>
         </div>
-        <div>{children}</div>
+        <div className="text-right">{children}</div>
     </div>
 );
 
@@ -80,14 +87,17 @@ const InfluencerDetailsSkeleton: React.FC = () => (
 );
 
 // --- MAIN COMPONENT ---
-const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influencerId, onBack, onSelectAudience, onSelectLocation, onSelectCategory }) => {
-  const { t } = useTranslation('influencers');
+const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influencerId, onBack, onSelectAudience, onSelectLocation, onSelectCategory, onSelectInfluencer }) => {
+  const { t, i18n } = useTranslation('influencers');
   const [influencer, setInfluencer] = useState<Influencer | null>(null);
   const [relatedData, setRelatedData] = useState<RelatedData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Scroll to top when influencerId changes
+    window.scrollTo(0, 0);
+    
     const fetchInfluencerDetails = async () => {
       setLoading(true);
       setError(null);
@@ -133,9 +143,43 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
             }
         };
 
+        const fetchLocationDetails = async (locationId: number): Promise<LocationRelatedItem | null> => {
+            if (!locationId) return null;
+            try {
+                const locRes = await fetch(`${API_BASE_URL}/items/locations/${locationId}?fields=id,country,country_persian`);
+                if (!locRes.ok) return null;
+                const locData = await locRes.json();
+                const locationItem = locData.data;
+                if (!locationItem) return null;
+
+                const details: LocationRelatedItem = {
+                    id: locationItem.id,
+                    name: locationItem.country_persian, // Persian name
+                };
+
+                if (locationItem.country) {
+                    try {
+                        const countryRes = await fetch(`https://restcountries.com/v3.1/alpha/${locationItem.country}`);
+                        if (countryRes.ok) {
+                            const countryData = await countryRes.json();
+                            const countryDetail = countryData[0];
+                            details.englishName = countryDetail?.name?.common;
+                            details.flagUrl = countryDetail?.flags?.svg;
+                        }
+                    } catch (e) {
+                        console.warn(`Could not fetch details for country code ${locationItem.country}:`, e);
+                    }
+                }
+                return details;
+            } catch (err) {
+                console.error(`Failed to fetch location details:`, err);
+                return null;
+            }
+        };
+
         const [category, location, audience] = await Promise.all([
             fetchSingleItem('categories', inf.influencer_category, 'category_parent'),
-            fetchSingleItem('locations', inf.influencer_location, 'country_persian'),
+            fetchLocationDetails(inf.influencer_location),
             fetchMultipleItems('audiences', inf.influencer_audience, 'audience_title'),
         ]);
         
@@ -207,21 +251,9 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
             {relatedData?.category ? (
                 <button 
                     onClick={() => onSelectCategory(relatedData.category!.id)}
-                    className="font-bold text-neutral-800 dark:text-neutral-200 text-left hover:text-primary dark:hover:text-primary-light transition-colors"
+                    className="font-bold text-neutral-800 dark:text-neutral-200 hover:text-primary dark:hover:text-primary-light transition-colors"
                 >
                     {relatedData.category.name}
-                </button>
-            ) : (
-                <p className="font-bold text-neutral-800 dark:text-neutral-200">N/A</p>
-            )}
-        </InfoBlock>
-        <InfoBlock icon={<MapPinIcon />} label={t('location')}>
-            {relatedData?.location ? (
-                 <button 
-                    onClick={() => onSelectLocation(relatedData.location!.id)}
-                    className="font-bold text-neutral-800 dark:text-neutral-200 text-left hover:text-primary dark:hover:text-primary-light transition-colors"
-                >
-                    {relatedData.location.name}
                 </button>
             ) : (
                 <p className="font-bold text-neutral-800 dark:text-neutral-200">N/A</p>
@@ -232,6 +264,29 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
         </InfoBlock>
          <InfoBlock icon={<UsersIcon />} label={t('gender')}>
             <p className="font-bold text-neutral-800 dark:text-neutral-200 capitalize">{t(influencer.influencer_gender)}</p>
+        </InfoBlock>
+        <InfoBlock icon={<MapPinIcon />} label={t('location')}>
+            {relatedData?.location ? (
+                 <button 
+                    onClick={() => onSelectLocation(relatedData.location!.id)}
+                    className="font-bold text-neutral-800 dark:text-neutral-200 hover:text-primary dark:hover:text-primary-light transition-colors flex items-center gap-3"
+                >
+                    {relatedData.location.flagUrl && (
+                        <img 
+                            src={relatedData.location.flagUrl} 
+                            alt=""
+                            className="w-8 h-auto rounded-sm border border-neutral-200 dark:border-neutral-700"
+                        />
+                    )}
+                    <span>
+                      {i18n.language === 'fa' 
+                          ? relatedData.location.name 
+                          : relatedData.location.englishName || relatedData.location.name}
+                    </span>
+                </button>
+            ) : (
+                <p className="font-bold text-neutral-800 dark:text-neutral-200">N/A</p>
+            )}
         </InfoBlock>
       </section>
       
@@ -283,6 +338,15 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
             </div>
         )}
       </section>
+
+      {/* Related Influencers Section */}
+      <RelatedInfluencers
+        currentInfluencerId={influencer.id}
+        locationId={influencer.influencer_location}
+        categoryId={influencer.influencer_category}
+        gender={influencer.influencer_gender}
+        onSelectInfluencer={onSelectInfluencer}
+      />
     </div>
   );
 };

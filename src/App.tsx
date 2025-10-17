@@ -173,6 +173,7 @@ const App: React.FC = () => {
                 setViewingCategoryId(id);
                 setCurrentPage(Page.Categories);
             }}
+            onSelectInfluencer={(id) => setViewingInfluencerId(id)}
           />
         ) : (
           <InfluencersPage onSelectInfluencer={(id) => setViewingInfluencerId(id)} />

@@ -19,6 +19,7 @@ import {
   MagnifyingGlassIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronDownIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
   LightBulbIcon,
@@ -30,6 +31,8 @@ import {
   ShareIcon,
   GiftIcon,
   NewspaperIcon,
+  Bars3Icon,
+  PhotoIcon,
 } from '@heroicons/react/24/outline';
 
 // Re-exporting from Heroicons with aliases to maintain consistency
@@ -51,6 +54,7 @@ export {
   MagnifyingGlassIcon as SearchIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronDownIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
   LightBulbIcon,
@@ -62,6 +66,8 @@ export {
   LinkIcon,
   ShareIcon,
   GiftIcon,
+  Bars3Icon,
+  PhotoIcon,
 };
 
 // Keep custom brand icon

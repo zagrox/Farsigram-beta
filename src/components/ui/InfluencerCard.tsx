@@ -25,7 +25,11 @@ const InfluencerCard: React.FC<InfluencerCardProps> = ({ influencer, onSelectInf
             className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group flex flex-col"
             aria-labelledby={`influencer-name-${influencer.id}`}
         >
-            <div className="relative aspect-square bg-neutral-200 dark:bg-neutral-700 overflow-hidden">
+            <button
+                onClick={() => onSelectInfluencer(influencer.id)}
+                className="relative block w-full aspect-square bg-neutral-200 dark:bg-neutral-700 overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-neutral-800/50"
+                aria-label={`${t('viewProfile')} for ${influencer.influencer_name}`}
+            >
                 <img
                     src={`${ASSETS_URL}/${influencer.influencer_avatar}`}
                     alt={influencer.influencer_name}
@@ -33,7 +37,7 @@ const InfluencerCard: React.FC<InfluencerCardProps> = ({ influencer, onSelectInf
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                 />
-            </div>
+            </button>
             <div className="p-6 flex flex-col flex-grow">
                 <h3 id={`influencer-name-${influencer.id}`} className="text-lg font-bold text-neutral-900 dark:text-neutral-100 text-center">{influencer.influencer_name}</h3>
                 <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center mt-1 truncate" title={influencer.influencer_title}>

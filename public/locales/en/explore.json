@@ -17,5 +17,15 @@
   "error_loading_influencers_in_location": "Could not load influencers for this location.",
   "error_loading_campaigns_in_location": "Could not load campaigns for this location.",
   "back_to_explore": "Back to Map",
-  "viewDetails": "View Details"
+  "viewDetails": "View Details",
+  "filter_type_all": "All",
+  "filter_type_influencers": "Influencers",
+  "filter_type_campaigns": "Campaigns",
+  "filter_placeholder_audience": "All Audiences",
+  "filter_placeholder_category": "All Categories",
+  "filter_placeholder_social": "All Networks",
+  "influencers_results_title": "Influencers",
+  "campaigns_results_title": "Campaigns",
+  "no_influencers_found": "No influencers match the selected filters.",
+  "no_campaigns_found": "No campaigns match the selected filters."
 }
