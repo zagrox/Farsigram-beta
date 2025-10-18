@@ -10,7 +10,7 @@ interface LayoutSwitcherProps {
 }
 
 const LayoutSwitcher: React.FC<LayoutSwitcherProps> = ({ currentLayout, onLayoutChange }) => {
-  const { t } = useTranslation('influencers');
+  const { t } = useTranslation('common');
 
   const layoutOptions: { name: Layout; labelKey: string; icon: React.ReactNode }[] = [
     { name: 'card', labelKey: 'layout_card', icon: <CategoryIcon className="w-5 h-5" /> },

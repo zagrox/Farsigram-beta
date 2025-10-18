@@ -15,6 +15,18 @@ interface CampaignSocialJunction {
   socials_id: SocialProfile;
 }
 
+interface CampaignAudienceJunction {
+  audiences_id: { id: number };
+}
+
+interface CampaignLocationJunction {
+  locations_id: { id: number };
+}
+
+interface CampaignCategoryJunction {
+  categories_id: { id: number };
+}
+
 interface Campaign {
   id: number;
   campaign_image: string;
@@ -24,9 +36,9 @@ interface Campaign {
   campaign_slogan: string;
   campaign_overview: string;
   campaign_tags: string[] | null;
-  campaign_audience: number[];
-  campaign_location: number[];
-  campaign_type: number[];
+  campaign_audience: CampaignAudienceJunction[];
+  campaign_location: CampaignLocationJunction[];
+  campaign_type: CampaignCategoryJunction[];
   campaign_social: CampaignSocialJunction[];
   date_created: string;
   date_updated: string;
@@ -101,13 +113,19 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
       setLoading(true);
       setError(null);
       try {
-        const campaignRes = await fetch(`${API_BASE_URL}/items/campaigns/${campaignId}?fields=*,campaign_social.socials_id.*`);
+        const fields = '*,campaign_social.socials_id.*,campaign_audience.audiences_id.id,campaign_location.locations_id.id,campaign_type.categories_id.id';
+        const campaignRes = await fetch(`${API_BASE_URL}/items/campaigns/${campaignId}?fields=${fields}`);
         if (!campaignRes.ok) throw new Error('Campaign not found');
+        
         const campaignData = await campaignRes.json();
         const camp: Campaign = campaignData.data;
         setCampaign(camp);
 
         const socials: SocialProfile[] = camp.campaign_social?.map(item => item.socials_id).filter(Boolean) || [];
+        
+        const audienceIds = camp.campaign_audience?.map(item => item.audiences_id.id).filter(Boolean) || [];
+        const locationIds = camp.campaign_location?.map(item => item.locations_id.id).filter(Boolean) || [];
+        const typeIds = camp.campaign_type?.map(item => item.categories_id.id).filter(Boolean) || [];
 
         const fetchRelated = async (endpoint: string, ids: number[], nameKey: string): Promise<RelatedItem[]> => {
             if (!ids || ids.length === 0) return [];
@@ -127,11 +145,41 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
                 return [];
             }
         };
+        
+        const fetchLocationDetails = async (ids: number[]): Promise<RelatedItem[]> => {
+            if (!ids || ids.length === 0) return [];
+            try {
+                const locRes = await fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&filter[id][_in]=${ids.join(',')}`);
+                if (!locRes.ok) return [];
+                const locData = await locRes.json();
+                const farsigramLocations: {id: number, country_persian: string, country: string}[] = locData.data;
+
+                const detailPromises = farsigramLocations.map(loc =>
+                    fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
+                );
+                const detailsResults = await Promise.all(detailPromises);
+
+                return farsigramLocations.map((loc, index) => {
+                    const detail = detailsResults[index]?.[0];
+                    let englishName = detail?.name?.common || loc.country_persian;
+                    if (loc.country_persian === 'جهانی') {
+                        englishName = 'Global';
+                    }
+                    return {
+                        id: loc.id,
+                        name: i18n.language === 'fa' ? loc.country_persian : englishName,
+                    };
+                });
+            } catch (error) {
+                console.error(`Failed to fetch location details:`, error);
+                return [];
+            }
+        };
 
         const [audience, locations, types] = await Promise.all([
-            fetchRelated('audiences', camp.campaign_audience, 'audience_title'),
-            fetchRelated('locations', camp.campaign_location, 'country_persian'),
-            fetchRelated('categories', camp.campaign_type, 'category_parent'),
+            fetchRelated('audiences', audienceIds, 'audience_title'),
+            fetchLocationDetails(locationIds),
+            fetchRelated('categories', typeIds, 'category_parent'),
         ]);
         
         setRelatedData({ audience, locations, types, socials });
@@ -145,7 +193,7 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
     };
 
     fetchCampaignDetails();
-  }, [campaignId, t]);
+  }, [campaignId, t, i18n]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';

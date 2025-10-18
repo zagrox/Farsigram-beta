@@ -5,7 +5,7 @@
   "createButton": "Create Campaign",
   "loading": "Loading campaigns...",
   "error": "Failed to load campaigns. Please try again later.",
-  "noCampaigns": "No active campaigns found at the moment.",
+  "noCampaigns": "No campaigns found matching the filters.",
   "viewDetails": "View Details",
   "backToCampaigns": "Back to Campaigns",
   "goal": "Goal",
@@ -19,5 +19,11 @@
   "loading_details": "Loading campaign details...",
   "error_details": "Could not load campaign details. Please go back and try again.",
   "created_on": "Created on",
-  "last_updated": "Last updated"
+  "last_updated": "Last updated",
+  "filter_search_placeholder": "Search name, slogan...",
+  "filter_placeholder_category": "All Types",
+  "filter_placeholder_location": "All Locations",
+  "filter_placeholder_audience": "All Audiences",
+  "filter_placeholder_social": "All Networks",
+  "results_count": "{{count}} campaigns found"
 }

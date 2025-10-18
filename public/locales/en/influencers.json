@@ -28,9 +28,6 @@
   "filter_gender_all": "All Genders",
   "filter_hub_member": "Hub Member",
   "results_count": "{{count}} influencers found",
-  "layout_card": "Card View",
-  "layout_list": "List View",
-  "layout_image": "Image View",
   "related_influencers": "Related Influencers",
   "filter_search_placeholder": "Search by name or title..."
 }

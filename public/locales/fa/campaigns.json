@@ -5,7 +5,7 @@
   "createButton": "ایجاد کمپین",
   "loading": "در حال بارگذاری کمپین‌ها...",
   "error": "بارگذاری کمپین‌ها با شکست مواجه شد. لطفاً بعداً دوباره امتحان کنید.",
-  "noCampaigns": "در حال حاضر هیچ کمپین فعالی یافت نشد.",
+  "noCampaigns": "هیچ کمپینی با فیلترهای انتخاب شده مطابقت ندارد.",
   "viewDetails": "مشاهده جزئیات",
   "backToCampaigns": "بازگشت به کمپین‌ها",
   "goal": "هدف",
@@ -19,5 +19,11 @@
   "loading_details": "در حال بارگذاری جزئیات کمپین...",
   "error_details": "بارگذاری جزئیات کمپین با مشکل مواجه شد. لطفاً بازگشته و دوباره تلاش کنید.",
   "created_on": "ایجاد شده در",
-  "last_updated": "آخرین بروزرسانی"
+  "last_updated": "آخرین بروزرسانی",
+  "filter_search_placeholder": "جستجوی نام، شعار...",
+  "filter_placeholder_category": "همه انواع",
+  "filter_placeholder_location": "همه مکان‌ها",
+  "filter_placeholder_audience": "همه مخاطبان",
+  "filter_placeholder_social": "همه شبکه‌ها",
+  "results_count": "{{count}} کمپین یافت شد"
 }

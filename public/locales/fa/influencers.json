@@ -28,9 +28,6 @@
   "filter_gender_all": "همه جنسیت‌ها",
   "filter_hub_member": "عضو هاب",
   "results_count": "{{count}} اینفلوئنسر یافت شد",
-  "layout_card": "نمای کارتی",
-  "layout_list": "نمای لیستی",
-  "layout_image": "نمای تصویری",
   "related_influencers": "اینفلوئنسرهای مرتبط",
   "filter_search_placeholder": "جستجو بر اساس نام یا عنوان..."
 }

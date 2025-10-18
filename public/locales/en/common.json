@@ -16,5 +16,8 @@
   "expandSidebar": "Expand sidebar",
   "collapseSidebar": "Collapse sidebar",
   "search": "Search",
-  "viewAll": "View All"
+  "viewAll": "View All",
+  "layout_card": "Card View",
+  "layout_list": "List View",
+  "layout_image": "Image View"
 }

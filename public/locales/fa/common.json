@@ -16,5 +16,8 @@
   "expandSidebar": "باز کردن نوار کناری",
   "collapseSidebar": "بستن نوار کناری",
   "search": "جستجو",
-  "viewAll": "مشاهده همه"
+  "viewAll": "مشاهده همه",
+  "layout_card": "نمای کارتی",
+  "layout_list": "نمای لیستی",
+  "layout_image": "نمای تصویری"
 }
