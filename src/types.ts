@@ -9,6 +9,7 @@ export enum Page {
   Influencers,
   Map,
   Business,
+  Search,
 }
 
 export enum Theme {

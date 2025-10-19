@@ -1,0 +1,11 @@
+{
+  "title": "Search Results",
+  "influencers": "Influencers",
+  "campaigns": "Campaigns",
+  "businesses": "Businesses",
+  "noResults": "No results found for \"{{query}}\". Try a different search term.",
+  "noInfluencers": "No influencers found.",
+  "noCampaigns": "No campaigns found.",
+  "noBusinesses": "No businesses found.",
+  "results": "Results"
+}

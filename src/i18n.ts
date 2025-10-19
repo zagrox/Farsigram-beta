@@ -22,6 +22,7 @@ i18n
       'influencers',
       'map',
       'business',
+      'search',
     ],
     defaultNS: 'common',
     backend: {

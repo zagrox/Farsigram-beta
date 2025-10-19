@@ -19,6 +19,7 @@ import InfluencersPage from './pages/InfluencersPage';
 import InfluencerDetailsPage from './pages/InfluencerDetailsPage';
 import BusinessPage from './pages/BusinessPage';
 import BusinessDetailsPage from './pages/BusinessDetailsPage';
+import SearchPage from './pages/SearchPage';
 import i18n from './i18n';
 import { Layout } from './components/ui/LayoutSwitcher';
 
@@ -42,6 +43,7 @@ const App: React.FC = () => {
   const [viewingAudienceId, setViewingAudienceId] = useState<number | null>(null);
   const [viewingLocationId, setViewingLocationId] = useState<number | null>(null);
   const [viewingCategoryId, setViewingCategoryId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [sharedLayout, setSharedLayout] = useState<Layout>(() => {
     return (localStorage.getItem('sharedLayout') as Layout) || 'card';
   });
@@ -106,6 +108,9 @@ const App: React.FC = () => {
     if (currentPage !== Page.Map) {
       setViewingLocationId(null);
     }
+    if (currentPage !== Page.Search) {
+      setSearchQuery('');
+    }
   }, [currentPage]);
 
   const setThemeAndStore = (newTheme: Theme) => {
@@ -139,6 +144,11 @@ const App: React.FC = () => {
     if (page === Page.Map) setViewingLocationId(null);
     
     setCurrentPage(page);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(Page.Search);
   };
 
   const renderPage = () => {
@@ -257,6 +267,10 @@ const App: React.FC = () => {
                     setViewingCampaignId(id);
                     setCurrentPage(Page.Campaigns);
                 }}
+                onSelectBusiness={(id) => {
+                    setViewingBusinessId(id);
+                    setCurrentPage(Page.Business);
+                }}
             />;
         }
         return <MapPage onSelectLocation={(id) => setViewingLocationId(id)} />;
@@ -324,6 +338,23 @@ const App: React.FC = () => {
         return <MarketplacePage />;
       case Page.Profile:
         return <ProfilePage setTheme={setThemeAndStore} setSystemTheme={setSystemTheme} />;
+      case Page.Search:
+        return <SearchPage
+            query={searchQuery}
+            onSearch={handleSearch}
+            onSelectInfluencer={(id) => {
+                setViewingInfluencerId(id);
+                setCurrentPage(Page.Influencers);
+            }}
+            onSelectCampaign={(id) => {
+                setViewingCampaignId(id);
+                setCurrentPage(Page.Campaigns);
+            }}
+            onSelectBusiness={(id) => {
+                setViewingBusinessId(id);
+                setCurrentPage(Page.Business);
+            }}
+        />;
       default:
         return <HomePage 
           setCurrentPage={setCurrentPage}
@@ -352,6 +383,7 @@ const App: React.FC = () => {
           theme={theme}
           setTheme={setThemeAndStore}
           currentPage={currentPage}
+          onSearch={handleSearch}
         />
         <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
           {renderPage()}

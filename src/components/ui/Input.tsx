@@ -12,7 +12,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative w-full">
         {icon && (
-          <div className={`absolute inset-y-0 flex items-center pointer-events-none ${isRtl ? 'right-0 pr-3' : 'left-0 pl-3'}`}>
+          <div className={`absolute inset-y-0 flex items-center ${isRtl ? 'right-0 pr-3' : 'left-0 pl-3'}`}>
             {icon}
           </div>
         )}

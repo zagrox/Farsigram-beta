@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../constants';
 import { CompactRelatedCard, CompactRelatedCardSkeleton } from './CompactRelatedCard';
-import SectionHeader from './SectionHeader';
 import { EnrichedInfluencer } from './InfluencerCard';
 
 // --- TYPE DEFINITIONS ---
@@ -101,7 +100,7 @@ const RelatedInfluencers: React.FC<RelatedInfluencersProps> = ({ currentInfluenc
       
       let finalRelated: EnrichedInfluencer[] = [];
       const fetchedIds = new Set<number>([currentInfluencerId]);
-      const MAX_RESULTS = 6;
+      const MAX_RESULTS = 4;
 
       const enrichAndAdd = (influencers: Influencer[]) => {
         const enriched = influencers
@@ -181,10 +180,10 @@ const RelatedInfluencers: React.FC<RelatedInfluencersProps> = ({ currentInfluenc
 
   if (loading) {
     return (
-      <section>
-        <SectionHeader title={t('related_influencers')} />
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 md:gap-6">
-          {Array.from({ length: 6 }).map((_, index) => <CompactRelatedCardSkeleton key={index} />)}
+      <section className="bg-white dark:bg-neutral-800/50 p-6 rounded-xl shadow-md">
+        <div className="h-6 w-1/3 bg-neutral-200 dark:bg-neutral-700 rounded-md mx-auto mb-6 animate-pulse"></div>
+        <div className="flex flex-wrap justify-center items-start gap-x-8 gap-y-4">
+          {Array.from({ length: 4 }).map((_, index) => <CompactRelatedCardSkeleton key={index} />)}
         </div>
       </section>
     );
@@ -195,9 +194,11 @@ const RelatedInfluencers: React.FC<RelatedInfluencersProps> = ({ currentInfluenc
   }
 
   return (
-    <section>
-      <SectionHeader title={t('related_influencers')} />
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 md:gap-6">
+    <section className="bg-white dark:bg-neutral-800/50 p-6 rounded-xl shadow-md">
+      <h2 className="text-xl font-bold text-center mb-6 text-neutral-800 dark:text-neutral-200">
+        {t('related_influencers')}
+      </h2>
+      <div className="flex flex-wrap justify-center items-start gap-x-8 gap-y-4">
         {related.map(influencer => (
           <CompactRelatedCard
             key={influencer.id}

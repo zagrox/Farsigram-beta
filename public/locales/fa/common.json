@@ -17,8 +17,14 @@
   "expandSidebar": "باز کردن نوار کناری",
   "collapseSidebar": "بستن نوار کناری",
   "search": "جستجو",
+  "submitSearch": "ارسال جستجو",
   "viewAll": "مشاهده همه",
   "layout_card": "نمای کارتی",
   "layout_list": "نمای لیستی",
-  "layout_image": "نمای تصویری"
+  "layout_image": "نمای تصویری",
+  "suggestions_campaigns": "کمپین‌ها",
+  "suggestions_influencers": "اینفلوئنسرها",
+  "suggestions_businesses": "کسب و کارها",
+  "noSuggestionsFound": "هیچ پیشنهادی یافت نشد.",
+  "loading": "در حال بارگذاری"
 }

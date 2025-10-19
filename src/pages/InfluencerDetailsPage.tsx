@@ -345,13 +345,15 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
       </section>
 
       {/* Related Influencers Section */}
-      <RelatedInfluencers
-        currentInfluencerId={influencer.id}
-        locationId={influencer.influencer_location}
-        categoryId={influencer.influencer_category}
-        gender={influencer.influencer_gender}
-        onSelectInfluencer={onSelectInfluencer}
-      />
+      <div className="max-w-5xl mx-auto">
+        <RelatedInfluencers
+          currentInfluencerId={influencer.id}
+          locationId={influencer.influencer_location}
+          categoryId={influencer.influencer_category}
+          gender={influencer.influencer_gender}
+          onSelectInfluencer={onSelectInfluencer}
+        />
+      </div>
     </div>
   );
 };

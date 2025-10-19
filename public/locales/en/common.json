@@ -17,8 +17,14 @@
   "expandSidebar": "Expand sidebar",
   "collapseSidebar": "Collapse sidebar",
   "search": "Search",
+  "submitSearch": "Submit search",
   "viewAll": "View All",
   "layout_card": "Card View",
   "layout_list": "List View",
-  "layout_image": "Image View"
+  "layout_image": "Image View",
+  "suggestions_campaigns": "Campaigns",
+  "suggestions_influencers": "Influencers",
+  "suggestions_businesses": "Businesses",
+  "noSuggestionsFound": "No suggestions found.",
+  "loading": "Loading"
 }

@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../constants';
 import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
+import CompactBusinessCard, { CompactBusinessCardSkeleton } from '../components/ui/CompactBusinessCard';
 import { ArrowLeftIcon, ArrowRightIcon } from '../components/Icons';
 
 // --- TYPE DEFINITIONS ---
@@ -29,6 +30,12 @@ interface Influencer {
   influencer_social: { socials_id: { id: number; social_network: string; social_account: string; } }[];
   influencer_audience: { audiences_id: { id: number; audience_title: string; } }[];
 }
+interface Business {
+  id: number;
+  business_logo: string;
+  business_name: string;
+  business_slogan: string;
+}
 interface Category {
   id: number;
   category_parent: string;
@@ -48,16 +55,18 @@ interface LocationDetailsPageProps {
   onBack: () => void;
   onSelectInfluencer: (id: number) => void;
   onSelectCampaign: (id: number) => void;
+  onSelectBusiness: (id: number) => void;
 }
 
 
 // --- MAIN COMPONENT ---
-const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, onBack, onSelectInfluencer, onSelectCampaign }) => {
+const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, onBack, onSelectInfluencer, onSelectCampaign, onSelectBusiness }) => {
     const { t, i18n } = useTranslation('explore');
 
     const [location, setLocation] = useState<LocationDetails | null>(null);
     const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [businesses, setBusinesses] = useState<Business[]>([]);
     
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -91,10 +100,11 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                 };
                 setLocation(currentLocation);
 
-                // 2. Fetch Influencers and Campaigns in parallel
-                const [influencersPromise, campaignsPromise] = await Promise.all([
+                // 2. Fetch Influencers, Campaigns, and Businesses in parallel
+                const [influencersPromise, campaignsPromise, businessesPromise] = await Promise.all([
                     fetch(`${API_BASE_URL}/items/influencers?filter[influencer_location][_eq]=${locationId}&filter[status][_eq]=published&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*`),
                     fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_location][locations_id][_eq]=${locationId}&filter[status][_eq]=published`),
+                    fetch(`${API_BASE_URL}/items/business?filter[business_location][_eq]=${locationId}&filter[status][_eq]=published&fields=id,business_logo,business_name,business_slogan`)
                 ]);
                 
                 // 3. Process Influencers
@@ -130,6 +140,11 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                 const campaignsData = await campaignsPromise.json();
                 setCampaigns(campaignsData.data);
 
+                // 5. Process Businesses
+                if (!businessesPromise.ok) throw new Error('Failed to fetch businesses');
+                const businessesData = await businessesPromise.json();
+                setBusinesses(businessesData.data);
+
             } catch (err) {
                 console.error("Failed to fetch location data:", err);
                 setError(t('errorLoadingLocations'));
@@ -145,7 +160,7 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
         return (
              <div className="space-y-8 animate-pulse">
                 <div className="h-16 w-3/4 md:w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-xl"></div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
                          <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
                          {Array.from({ length: 5 }).map((_, index) => <CompactInfluencerCardSkeleton key={index} />)}
@@ -153,6 +168,10 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                      <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
                          <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
                          {Array.from({ length: 4 }).map((_, index) => <CompactCampaignCardSkeleton key={index} />)}
+                    </div>
+                     <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
+                         <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
+                         {Array.from({ length: 3 }).map((_, index) => <CompactBusinessCardSkeleton key={index} />)}
                     </div>
                 </div>
             </div>
@@ -189,7 +208,7 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                 </div>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* Influencers Column */}
                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
                      <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('influencers_in_location', { locationName })}</h2>
@@ -214,6 +233,20 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                             ))
                         ) : (
                             <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found_in_location')}</p>
+                        )}
+                     </div>
+                </div>
+                
+                {/* Businesses Column */}
+                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
+                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('businesses_in_location', { locationName })}</h2>
+                     <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
+                        {businesses.length > 0 ? (
+                            businesses.map((business) => (
+                                <CompactBusinessCard key={business.id} business={business} onSelectBusiness={onSelectBusiness} />
+                            ))
+                        ) : (
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_businesses_found_in_location')}</p>
                         )}
                      </div>
                 </div>
