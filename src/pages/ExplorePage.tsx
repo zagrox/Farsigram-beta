@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../constants';
 import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
+import CompactBusinessCard, { CompactBusinessCardSkeleton } from '../components/ui/CompactBusinessCard';
 import FilterComponent, { FilterState } from '../components/ui/FilterComponent';
 import { getSocialNetworkName } from '../utils/socialUtils';
 
@@ -27,6 +28,12 @@ interface Influencer {
   influencer_social: { socials_id: { id: number; social_network: string; social_account: string; } }[];
   influencer_audience: { audiences_id: { id: number; audience_title: string; } }[];
 }
+interface Business {
+  id: number;
+  business_logo: string;
+  business_name: string;
+  business_slogan: string;
+}
 interface ApiCategory {
   id: number;
   category_parent: string;
@@ -45,13 +52,15 @@ interface Location {
 interface ExplorePageProps {
   onSelectInfluencer: (id: number) => void;
   onSelectCampaign: (id: number) => void;
+  onSelectBusiness: (id: number) => void;
 }
 
-const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectCampaign }) => {
+const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectCampaign, onSelectBusiness }) => {
     const { t, i18n } = useTranslation('explore');
 
     const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [businesses, setBusinesses] = useState<Business[]>([]);
     
     // State for filter dropdowns
     const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
@@ -61,6 +70,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
     // Loading states
     const [loadingInfluencers, setLoadingInfluencers] = useState<boolean>(true);
     const [loadingCampaigns, setLoadingCampaigns] = useState<boolean>(true);
+    const [loadingBusinesses, setLoadingBusinesses] = useState<boolean>(true);
     const [loadingFilters, setLoadingFilters] = useState<boolean>(true);
     
     // Filter state
@@ -113,7 +123,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
 
     // Fetch Influencers based on filters
     useEffect(() => {
-        if (filters.type === 'campaigns') {
+        if (filters.type === 'campaigns' || filters.type === 'businesses') {
             setInfluencers([]);
             setLoadingInfluencers(false);
             return;
@@ -160,9 +170,13 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
 
                 const locationsMap = new Map(farsigramLocations.map((loc, index) => {
                     const detail = detailsResults[index]?.[0];
+                    let englishName = detail?.name?.common || loc.country_persian;
+                    if (loc.country_persian === 'جهانی') {
+                        englishName = 'Global';
+                    }
                     return [loc.id, {
                         persian: loc.country_persian,
-                        english: detail?.name?.common || loc.country_persian
+                        english: englishName
                     }];
                 }));
         
@@ -201,7 +215,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
 
     // Fetch Campaigns based on filters
     useEffect(() => {
-        if (filters.type === 'influencers') {
+        if (filters.type === 'influencers' || filters.type === 'businesses') {
             setCampaigns([]);
             setLoadingCampaigns(false);
             return;
@@ -243,9 +257,57 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
         fetchFilteredCampaigns();
     }, [filters]);
 
+    // Fetch Businesses based on filters
+    useEffect(() => {
+        if (filters.type === 'influencers' || filters.type === 'campaigns') {
+            setBusinesses([]);
+            setLoadingBusinesses(false);
+            return;
+        }
+
+        const fetchFilteredBusinesses = async () => {
+            setLoadingBusinesses(true);
+            
+            const baseUrl = `${API_BASE_URL}/items/business?sort=-date_created&limit=20&fields=id,business_logo,business_name,business_slogan`;
+            
+            const filterConditions: any[] = [{ status: { _eq: 'published' } }];
+            if (filters.audienceId) {
+                filterConditions.push({ business_audience: { audiences_id: { _eq: filters.audienceId } } });
+            }
+            if (filters.categoryId) {
+                filterConditions.push({ business_category: { _eq: filters.categoryId } });
+            }
+            if (filters.socialNetworkUrl) {
+                filterConditions.push({ business_social: { socials_id: { social_network: { _eq: filters.socialNetworkUrl } } } });
+            }
+
+            const filterObject = { _and: filterConditions };
+            const url = `${baseUrl}&filter=${encodeURIComponent(JSON.stringify(filterObject))}`;
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                  throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                setBusinesses(data.data);
+            } catch (err) {
+                console.error("Failed to fetch filtered businesses:", err);
+            } finally {
+                setLoadingBusinesses(false);
+            }
+        };
+
+        fetchFilteredBusinesses();
+    }, [filters]);
+
     const showInfluencers = filters.type === 'all' || filters.type === 'influencers';
     const showCampaigns = filters.type === 'all' || filters.type === 'campaigns';
-    const isLoading = loadingInfluencers || loadingCampaigns || loadingFilters;
+    const showBusinesses = filters.type === 'all' || filters.type === 'businesses';
+    const isLoading = loadingInfluencers || loadingCampaigns || loadingBusinesses || loadingFilters;
+    
+    const gridCols = [showInfluencers, showCampaigns, showBusinesses].filter(Boolean).length;
+
 
     return (
         <div className="space-y-8">
@@ -258,7 +320,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
                 loading={isLoading}
             />
         
-            <div className={`grid grid-cols-1 ${showInfluencers && showCampaigns ? 'lg:grid-cols-2' : ''} gap-8 items-start`}>
+            <div className={`grid grid-cols-1 ${gridCols > 1 ? `lg:grid-cols-${gridCols}` : ''} gap-8 items-start`}>
                 {/* Influencers Column */}
                 {showInfluencers && (
                     <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
@@ -290,6 +352,24 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
                                 ))
                             ) : (
                                 <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found')}</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Businesses Column */}
+                {showBusinesses && (
+                    <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
+                        <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('businesses_results_title')}</h2>
+                        <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2 min-h-[200px]">
+                            {loadingBusinesses ? (
+                                Array.from({ length: 5 }).map((_, index) => <CompactBusinessCardSkeleton key={index} />)
+                            ) : businesses.length > 0 ? (
+                                businesses.map((business) => (
+                                    <CompactBusinessCard key={business.id} business={business} onSelectBusiness={onSelectBusiness} />
+                                ))
+                            ) : (
+                                <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_businesses_found')}</p>
                             )}
                         </div>
                     </div>

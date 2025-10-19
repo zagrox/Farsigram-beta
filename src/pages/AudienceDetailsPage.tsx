@@ -5,18 +5,16 @@ import { API_BASE_URL } from '../constants';
 import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
+import CompactBusinessCard, { CompactBusinessCardSkeleton } from '../components/ui/CompactBusinessCard';
 import { UsersIcon, ArrowLeftIcon, ArrowRightIcon } from '../components/Icons';
 
 // --- TYPE DEFINITIONS ---
 interface Campaign {
   id: number;
-  status: string;
   campaign_image: string;
   campaign_color: string | null;
   campaign_goal: string;
   campaign_title: string;
-  campaign_slogan: string;
-  campaign_overview: string;
 }
 interface Influencer {
   id: number;
@@ -28,6 +26,12 @@ interface Influencer {
   influencer_hub: boolean;
   influencer_social: { socials_id: { id: number; social_network: string; social_account: string; } }[];
   influencer_audience: { audiences_id: { id: number; audience_title: string; } }[];
+}
+interface Business {
+  id: number;
+  business_logo: string;
+  business_name: string;
+  business_slogan: string;
 }
 interface Category {
   id: number;
@@ -50,15 +54,17 @@ interface AudienceDetailsPageProps {
   onBack: () => void;
   onSelectInfluencer: (id: number) => void;
   onSelectCampaign: (id: number) => void;
+  onSelectBusiness: (id: number) => void;
 }
 
 // --- MAIN COMPONENT ---
-const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, onBack, onSelectInfluencer, onSelectCampaign }) => {
+const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, onBack, onSelectInfluencer, onSelectCampaign, onSelectBusiness }) => {
     const { t, i18n } = useTranslation('categories');
 
     const [audience, setAudience] = useState<Audience | null>(null);
     const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [businesses, setBusinesses] = useState<Business[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     
@@ -68,20 +74,24 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
             setError(null);
             
             try {
-                // Fetch Audience details first
-                const audienceRes = await fetch(`${API_BASE_URL}/items/audiences/${audienceId}`);
+                // Fetch All data in parallel
+                const [audienceRes, influencersRes, categoriesRes, locationsRes, campaignsRes, businessesRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/items/audiences/${audienceId}`),
+                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_audience][audiences_id][_eq]=${audienceId}&filter[status][_eq]=published&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*`),
+                    fetch(`${API_BASE_URL}/items/categories?fields=id,category_parent&limit=-1`),
+                    fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&limit=-1`),
+                    fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_audience][audiences_id][_eq]=${audienceId}&filter[status][_eq]=published`),
+                    fetch(`${API_BASE_URL}/items/business?filter[business_audience][audiences_id][_eq]=${audienceId}&filter[status][_eq]=published&fields=id,business_logo,business_name,business_slogan`)
+                ]);
+
+                // Process Audience Details
                 if (!audienceRes.ok) throw new Error('Could not fetch audience details');
                 const audienceData = await audienceRes.json();
                 setAudience(audienceData.data);
 
-                // Fetch Influencers targeting this audience
-                const [influencersRes, categoriesRes, locationsRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_audience][audiences_id][_eq]=${audienceId}&filter[status][_eq]=published&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*`),
-                    fetch(`${API_BASE_URL}/items/categories?fields=id,category_parent&limit=-1`),
-                    fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&limit=-1`),
-                ]);
+                // Process Influencers
                 if (!influencersRes.ok || !categoriesRes.ok || !locationsRes.ok) {
-                  throw new Error('Network response was not ok for influencer enrichment');
+                  throw new Error(t('error_loading_influencers_for_audience'));
                 }
                 const influencersData = await influencersRes.json();
                 const categoriesData = await categoriesRes.json();
@@ -125,15 +135,19 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                 });
                 setInfluencers(enrichedInfluencers);
 
-                // Fetch Campaigns targeting this audience
-                const campaignsRes = await fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_audience][audiences_id][_eq]=${audienceId}&filter[status][_eq]=published`);
-                if (!campaignsRes.ok) throw new Error('Network response was not ok for campaigns');
+                // Process Campaigns
+                if (!campaignsRes.ok) throw new Error(t('error_loading_campaigns_for_audience'));
                 const campaignsData = await campaignsRes.json();
                 setCampaigns(campaignsData.data);
 
-            } catch (err) {
+                // Process Businesses
+                if (!businessesRes.ok) throw new Error(t('error_loading_businesses_for_audience'));
+                const businessesData = await businessesRes.json();
+                setBusinesses(businessesData.data);
+
+            } catch (err: any) {
                 console.error("Failed to fetch audience data:", err);
-                setError(t('error_loading_influencers_for_audience'));
+                setError(err.message || "An unknown error occurred");
             } finally {
                 setLoading(false);
             }
@@ -149,9 +163,9 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
 
     if (loading) {
         return (
-            <div className="space-y-8">
-                <div className="h-16 w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-xl animate-pulse"></div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-8 animate-pulse">
+                <div className="h-16 w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-xl"></div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
                          <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
                          {Array.from({ length: 5 }).map((_, index) => <CompactInfluencerCardSkeleton key={index} />)}
@@ -159,6 +173,10 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                      <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
                          <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
                          {Array.from({ length: 4 }).map((_, index) => <CompactCampaignCardSkeleton key={index} />)}
+                    </div>
+                    <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
+                         <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
+                         {Array.from({ length: 3 }).map((_, index) => <CompactBusinessCardSkeleton key={index} />)}
                     </div>
                 </div>
             </div>
@@ -193,7 +211,7 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                 </div>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* Influencers Column */}
                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
                      <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('influencers_for_audience', { audienceName })}</h2>
@@ -218,6 +236,20 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                             ))
                         ) : (
                             <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found_for_audience')}</p>
+                        )}
+                     </div>
+                </div>
+
+                {/* Businesses Column */}
+                <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
+                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('businesses_for_audience', { audienceName })}</h2>
+                     <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
+                        {businesses.length > 0 ? (
+                            businesses.map((business) => (
+                                <CompactBusinessCard key={business.id} business={business} onSelectBusiness={onSelectBusiness} />
+                            ))
+                        ) : (
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_businesses_found_for_audience')}</p>
                         )}
                      </div>
                 </div>

@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../constants';
 import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
+import CompactBusinessCard, { CompactBusinessCardSkeleton } from '../components/ui/CompactBusinessCard';
 import { SocialIcon, ArrowLeftIcon, ArrowRightIcon } from '../components/Icons';
 
 // --- TYPE DEFINITIONS (mirrored from other pages for consistency) ---
@@ -15,8 +16,6 @@ interface Campaign {
   campaign_color: string | null;
   campaign_goal: string;
   campaign_title: string;
-  campaign_slogan: string;
-  campaign_overview: string;
 }
 interface Influencer {
   id: number;
@@ -28,6 +27,12 @@ interface Influencer {
   influencer_hub: boolean;
   influencer_social: { socials_id: { id: number; social_network: string; social_account: string; } }[];
   influencer_audience: { audiences_id: { id: number; audience_title: string; } }[];
+}
+interface Business {
+  id: number;
+  business_logo: string;
+  business_name: string;
+  business_slogan: string;
 }
 interface Category {
   id: number;
@@ -45,6 +50,7 @@ interface NetworkDetailsPageProps {
   onBack: () => void;
   onSelectInfluencer: (id: number) => void;
   onSelectCampaign: (id: number) => void;
+  onSelectBusiness: (id: number) => void;
 }
 
 // --- HELPER FUNCTION ---
@@ -63,39 +69,36 @@ const getSocialNetworkName = (url: string): string => {
 };
 
 // --- MAIN COMPONENT ---
-const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onBack, onSelectInfluencer, onSelectCampaign }) => {
+const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onBack, onSelectInfluencer, onSelectCampaign, onSelectBusiness }) => {
     const { t, i18n } = useTranslation('categories');
 
     const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-    const [loadingInfluencers, setLoadingInfluencers] = useState<boolean>(true);
-    const [loadingCampaigns, setLoadingCampaigns] = useState<boolean>(true);
-    const [errorInfluencers, setErrorInfluencers] = useState<string | null>(null);
-    const [errorCampaigns, setErrorCampaigns] = useState<string | null>(null);
+    const [businesses, setBusinesses] = useState<Business[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchNetworkData = async () => {
-            setLoadingInfluencers(true);
-            setLoadingCampaigns(true);
-            setErrorInfluencers(null);
-            setErrorCampaigns(null);
+            setLoading(true);
+            setError(null);
             
-            // Fetch Influencers
             try {
-                const [influencersRes, categoriesRes, locationsRes] = await Promise.all([
+                const [influencersRes, categoriesRes, locationsRes, campaignsRes, businessesRes] = await Promise.all([
                     fetch(`${API_BASE_URL}/items/influencers?filter[influencer_social][socials_id][social_network][_eq]=${networkUrl}&filter[status][_eq]=published&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*`),
                     fetch(`${API_BASE_URL}/items/categories?fields=id,category_parent&limit=-1`),
                     fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&limit=-1`),
+                    fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_social][socials_id][social_network][_eq]=${networkUrl}&filter[status][_eq]=published`),
+                    fetch(`${API_BASE_URL}/items/business?filter[business_social][socials_id][social_network][_eq]=${networkUrl}&filter[status][_eq]=published&fields=id,business_logo,business_name,business_slogan`)
                 ]);
         
+                // Process Influencers
                 if (!influencersRes.ok || !categoriesRes.ok || !locationsRes.ok) {
-                  throw new Error('Network response was not ok for influencer enrichment');
+                  throw new Error(t('error_loading_influencers'));
                 }
-        
                 const influencersData = await influencersRes.json();
                 const categoriesData = await categoriesRes.json();
                 const locationsData = await locationsRes.json();
-        
                 const categoriesMap = new Map<number, string>(categoriesData.data.map((c: Category) => [c.id, c.category_parent]));
                 
                 const farsigramLocations: Location[] = locationsData.data;
@@ -133,26 +136,23 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                       })).filter(a => a.id && a.name) || [],
                     };
                 });
-        
                 setInfluencers(enrichedInfluencers);
-            } catch (err) {
-                console.error("Failed to fetch influencers for network:", err);
-                setErrorInfluencers(t('error_loading_influencers'));
-            } finally {
-                setLoadingInfluencers(false);
-            }
-            
-            // Fetch Campaigns
-            try {
-                const campaignsRes = await fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_social][socials_id][social_network][_eq]=${networkUrl}&filter[status][_eq]=published`);
-                if (!campaignsRes.ok) throw new Error('Network response was not ok');
+
+                // Process Campaigns
+                if (!campaignsRes.ok) throw new Error(t('error_loading_campaigns'));
                 const campaignsData = await campaignsRes.json();
                 setCampaigns(campaignsData.data);
-            } catch (err) {
-                console.error("Failed to fetch campaigns for network:", err);
-                setErrorCampaigns(t('error_loading_campaigns'));
+                
+                // Process Businesses
+                if (!businessesRes.ok) throw new Error(t('error_loading_businesses_on_network'));
+                const businessesData = await businessesRes.json();
+                setBusinesses(businessesData.data);
+                
+            } catch (err: any) {
+                console.error("Failed to fetch network data:", err);
+                setError(err.message || 'An unknown error occurred');
             } finally {
-                setLoadingCampaigns(false);
+                setLoading(false);
             }
         };
 
@@ -162,6 +162,15 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
     }, [networkUrl, t, i18n.language]);
 
     const networkName = getSocialNetworkName(networkUrl);
+
+    if (error) {
+        return (
+            <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <p className="text-red-600 dark:text-red-400 font-semibold">{error}</p>
+                <button onClick={onBack} className="mt-4 font-semibold text-primary hover:text-primary-dark">{t('back_to_categories')}</button>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-8">
@@ -182,15 +191,13 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                 </div>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* Influencers Column */}
                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('influencers_on_network', { networkName })}</h2>
                     <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
-                        {loadingInfluencers ? (
+                        {loading ? (
                             Array.from({ length: 5 }).map((_, index) => <CompactInfluencerCardSkeleton key={index} />)
-                        ) : errorInfluencers ? (
-                            <p className="text-center text-red-500 py-8">{errorInfluencers}</p>
                         ) : influencers.length > 0 ? (
                             influencers.map((influencer) => (
                                 <CompactInfluencerCard key={influencer.id} influencer={influencer} onSelectInfluencer={onSelectInfluencer} />
@@ -205,16 +212,30 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('campaigns_on_network', { networkName })}</h2>
                     <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
-                         {loadingCampaigns ? (
+                         {loading ? (
                             Array.from({ length: 4 }).map((_, index) => <CompactCampaignCardSkeleton key={index} />)
-                        ) : errorCampaigns ? (
-                            <p className="text-center text-red-500 py-8">{errorCampaigns}</p>
                         ) : campaigns.length > 0 ? (
                             campaigns.map((campaign) => (
                                 <CompactCampaignCard key={campaign.id} campaign={campaign} onSelectCampaign={onSelectCampaign} />
                             ))
                         ) : (
                             <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found')}</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Businesses Column */}
+                <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
+                    <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('businesses_on_network', { networkName })}</h2>
+                    <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
+                         {loading ? (
+                            Array.from({ length: 4 }).map((_, index) => <CompactBusinessCardSkeleton key={index} />)
+                        ) : businesses.length > 0 ? (
+                            businesses.map((business) => (
+                                <CompactBusinessCard key={business.id} business={business} onSelectBusiness={onSelectBusiness} />
+                            ))
+                        ) : (
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_businesses_found_on_network')}</p>
                         )}
                     </div>
                 </div>

@@ -21,7 +21,7 @@ const CompactCampaignCard: React.FC<CompactCampaignCardProps> = ({ campaign, onS
     return (
         <button
             onClick={() => onSelectCampaign(campaign.id)}
-            className="w-full text-left p-3 rounded-lg flex items-center gap-4 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+            className="w-full text-left p-3 rounded-lg flex items-center gap-4 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-neutral-300 dark:border-neutral-700"
             aria-label={`View details for ${campaign.campaign_title}`}
         >
             <img

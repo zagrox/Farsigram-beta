@@ -34,6 +34,9 @@ import {
   Bars3Icon,
   PhotoIcon,
   XMarkIcon,
+  BriefcaseIcon,
+  GlobeAltIcon,
+  DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
 
 // Re-exporting from Heroicons with aliases to maintain consistency
@@ -61,6 +64,7 @@ export {
   LightBulbIcon,
   UsersIcon,
   UsersIcon as InfluencersIcon,
+  BriefcaseIcon as BusinessIcon,
   MapPinIcon,
   TagIcon,
   ComputerDesktopIcon,
@@ -70,6 +74,8 @@ export {
   Bars3Icon,
   PhotoIcon,
   XMarkIcon,
+  GlobeAltIcon,
+  DevicePhoneMobileIcon as PhoneIcon,
 };
 
 // Keep custom brand icon

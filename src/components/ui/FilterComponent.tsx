@@ -5,7 +5,7 @@ import ActiveFilterPill from './ActiveFilterPill';
 
 // --- Type Definitions ---
 export interface FilterState {
-  type: 'all' | 'influencers' | 'campaigns';
+  type: 'all' | 'influencers' | 'campaigns' | 'businesses';
   audienceId: string;
   categoryId: string;
   socialNetworkUrl: string;
@@ -104,6 +104,11 @@ const FilterComponent: React.FC<FilterComponentProps> = ({
             label={t('filter_type_campaigns')}
             isActive={filters.type === 'campaigns'}
             onClick={() => onFilterChange({ type: 'campaigns' })}
+          />
+          <FilterButton
+            label={t('filter_type_businesses')}
+            isActive={filters.type === 'businesses'}
+            onClick={() => onFilterChange({ type: 'businesses' })}
           />
         </div>
 

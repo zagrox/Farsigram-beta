@@ -26,6 +26,8 @@ interface Campaign {
 
 interface CampaignsPageProps {
   onSelectCampaign: (id: number) => void;
+  layout: Layout;
+  onLayoutChange: (layout: Layout) => void;
 }
 
 interface ApiItem {
@@ -42,10 +44,9 @@ interface LocationApiItem {
     englishName: string;
 }
 
-const CampaignsPage: React.FC<CampaignsPageProps> = ({ onSelectCampaign }) => {
+const CampaignsPage: React.FC<CampaignsPageProps> = ({ onSelectCampaign, layout, onLayoutChange }) => {
   const { t, i18n } = useTranslation('campaigns');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [layout, setLayout] = useState<Layout>('card');
   
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingFilters, setLoadingFilters] = useState<boolean>(true);
@@ -234,7 +235,7 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ onSelectCampaign }) => {
         loading={loading || loadingFilters}
         resultsCount={campaigns.length}
         layout={layout}
-        onLayoutChange={setLayout}
+        onLayoutChange={onLayoutChange}
       />
 
       {/* Campaigns Grid Section */}

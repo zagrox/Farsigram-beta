@@ -170,6 +170,11 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
                         console.warn(`Could not fetch details for country code ${locationItem.country}:`, e);
                     }
                 }
+                
+                if (details.name === 'جهانی') {
+                    details.englishName = 'Global';
+                }
+                
                 return details;
             } catch (err) {
                 console.error(`Failed to fetch location details:`, err);

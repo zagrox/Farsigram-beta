@@ -5,12 +5,12 @@ import { API_BASE_URL, ASSETS_URL } from '../constants';
 import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
+import CompactBusinessCard, { CompactBusinessCardSkeleton } from '../components/ui/CompactBusinessCard';
 import { ArrowLeftIcon, ArrowRightIcon } from '../components/Icons';
 
 // --- TYPE DEFINITIONS ---
 interface Campaign {
   id: number;
-  status: string;
   campaign_image: string;
   campaign_color: string | null;
   campaign_goal: string;
@@ -26,6 +26,12 @@ interface Influencer {
   influencer_hub: boolean;
   influencer_social: { socials_id: { id: number; social_network: string; social_account: string; } }[];
   influencer_audience: { audiences_id: { id: number; audience_title: string; } }[];
+}
+interface Business {
+  id: number;
+  business_logo: string;
+  business_name: string;
+  business_slogan: string;
 }
 interface Location {
   id: number;
@@ -45,15 +51,17 @@ interface CategoryDetailsPageProps {
   onBack: () => void;
   onSelectInfluencer: (id: number) => void;
   onSelectCampaign: (id: number) => void;
+  onSelectBusiness: (id: number) => void;
 }
 
 // --- MAIN COMPONENT ---
-const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, onBack, onSelectInfluencer, onSelectCampaign }) => {
+const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, onBack, onSelectInfluencer, onSelectCampaign, onSelectBusiness }) => {
     const { t, i18n } = useTranslation('categories');
 
     const [category, setCategory] = useState<Category | null>(null);
     const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [businesses, setBusinesses] = useState<Business[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     
@@ -64,25 +72,23 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
             setError(null);
             
             try {
-                // 1. Fetch Category details
-                const categoryRes = await fetch(`${API_BASE_URL}/items/categories/${categoryId}`);
+                // Fetch all data in parallel
+                const [categoryRes, influencersRes, campaignsRes, businessesRes, locationsRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/items/categories/${categoryId}`),
+                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_category][_eq]=${categoryId}&filter[status][_eq]=published&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*`),
+                    fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_type][categories_id][_eq]=${categoryId}&filter[status][_eq]=published`),
+                    fetch(`${API_BASE_URL}/items/business?filter[business_category][_eq]=${categoryId}&filter[status][_eq]=published&fields=id,business_logo,business_name,business_slogan`),
+                    fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&limit=-1`) // For enrichment
+                ]);
+
+                // 1. Process Category details
                 if (!categoryRes.ok) throw new Error('Could not fetch category details');
                 const categoryData = await categoryRes.json();
                 setCategory(categoryData.data);
 
-                // 2. Fetch related influencers and campaigns
-                const [influencersRes, campaignsRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/items/influencers?filter[influencer_category][_eq]=${categoryId}&filter[status][_eq]=published&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*`),
-                    fetch(`${API_BASE_URL}/items/campaigns?filter[campaign_type][categories_id][_eq]=${categoryId}&filter[status][_eq]=published`)
-                ]);
-
-                // 3. Process influencers
-                if (!influencersRes.ok) throw new Error(t('error_loading_influencers_for_category'));
+                // 2. Process influencers (with enrichment)
+                if (!influencersRes.ok || !locationsRes.ok) throw new Error(t('error_loading_influencers_for_category'));
                 const influencersData = await influencersRes.json();
-
-                // Enrich influencers (could be a shared hook)
-                const locationsRes = await fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&limit=-1`);
-                if (!locationsRes.ok) throw new Error('Failed to fetch locations for enrichment');
                 const locationsData = await locationsRes.json();
                 
                 const farsigramLocations: Location[] = locationsData.data;
@@ -122,10 +128,15 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
                 });
                 setInfluencers(enrichedInfluencers);
 
-                // 4. Process campaigns
+                // 3. Process campaigns
                 if (!campaignsRes.ok) throw new Error(t('error_loading_campaigns_for_category'));
                 const campaignsData = await campaignsRes.json();
                 setCampaigns(campaignsData.data);
+
+                // 4. Process Businesses
+                if (!businessesRes.ok) throw new Error(t('error_loading_businesses_for_category'));
+                const businessesData = await businessesRes.json();
+                setBusinesses(businessesData.data);
 
             } catch (err: any) {
                 console.error("Failed to fetch category data:", err);
@@ -145,7 +156,7 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
         return (
             <div className="space-y-8 animate-pulse">
                 <div className="h-16 w-3/4 md:w-1/2 bg-neutral-200 dark:bg-neutral-700 rounded-xl"></div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
                          <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
                          {Array.from({ length: 5 }).map((_, index) => <CompactInfluencerCardSkeleton key={index} />)}
@@ -153,6 +164,10 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
                      <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
                          <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
                          {Array.from({ length: 4 }).map((_, index) => <CompactCampaignCardSkeleton key={index} />)}
+                    </div>
+                     <div className="bg-white dark:bg-neutral-800/50 rounded-xl p-6 space-y-3">
+                         <div className="h-6 w-3/4 bg-neutral-200 dark:bg-neutral-700 rounded-md"></div>
+                         {Array.from({ length: 3 }).map((_, index) => <CompactBusinessCardSkeleton key={index} />)}
                     </div>
                 </div>
             </div>
@@ -193,7 +208,7 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
                 </div>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* Influencers Column */}
                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
                      <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('influencers_in_category', { categoryName })}</h2>
@@ -218,6 +233,20 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
                             ))
                         ) : (
                             <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found_for_category')}</p>
+                        )}
+                     </div>
+                </div>
+
+                {/* Businesses Column */}
+                <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
+                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('businesses_in_category', { categoryName })}</h2>
+                     <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
+                        {businesses.length > 0 ? (
+                            businesses.map((business) => (
+                                <CompactBusinessCard key={business.id} business={business} onSelectBusiness={onSelectBusiness} />
+                            ))
+                        ) : (
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_businesses_found_for_category')}</p>
                         )}
                      </div>
                 </div>

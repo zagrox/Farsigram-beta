@@ -20,6 +20,7 @@ const pageInfo: Record<Page, { ns: string; titleKey: string }> = {
   [Page.Marketplace]: { ns: 'marketplace', titleKey: 'title' },
   [Page.Profile]: { ns: 'profile', titleKey: 'title' },
   [Page.Influencers]: { ns: 'influencers', titleKey: 'title' },
+  [Page.Business]: { ns: 'business', titleKey: 'title' },
 };
 
 

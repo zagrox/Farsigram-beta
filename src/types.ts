@@ -8,6 +8,7 @@ export enum Page {
   Profile,
   Influencers,
   Map,
+  Business,
 }
 
 export enum Theme {

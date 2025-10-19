@@ -51,12 +51,13 @@ interface LocationApiItem {
 
 interface InfluencersPageProps {
   onSelectInfluencer: (id: number) => void;
+  layout: Layout;
+  onLayoutChange: (layout: Layout) => void;
 }
 
-const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer }) => {
+const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer, layout, onLayoutChange }) => {
   const { t, i18n } = useTranslation('influencers');
   const [influencers, setInfluencers] = useState<EnrichedInfluencer[]>([]);
-  const [layout, setLayout] = useState<Layout>('card');
   
   // Loading states
   const [loading, setLoading] = useState<boolean>(true);
@@ -114,10 +115,14 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
 
             const combinedLocations = farsigramLocations.map((loc, index) => {
                 const detail = detailsResults[index]?.[0];
+                let englishName = detail?.name?.common || loc.country_persian;
+                if (loc.country_persian === 'جهانی') {
+                    englishName = 'Global';
+                }
                 return {
                     id: loc.id,
                     persianName: loc.country_persian,
-                    englishName: detail?.name?.common || loc.country_persian
+                    englishName: englishName
                 };
             });
             setLocations(combinedLocations);
@@ -264,7 +269,7 @@ const InfluencersPage: React.FC<InfluencersPageProps> = ({ onSelectInfluencer })
         loading={loading || loadingFilters}
         resultsCount={influencers.length}
         layout={layout}
-        onLayoutChange={setLayout}
+        onLayoutChange={onLayoutChange}
       />
 
       {/* Influencers Grid Section */}

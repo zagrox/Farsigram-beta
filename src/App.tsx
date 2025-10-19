@@ -17,7 +17,10 @@ import MarketplacePage from './pages/MarketplacePage';
 import ProfilePage from './pages/ProfilePage';
 import InfluencersPage from './pages/InfluencersPage';
 import InfluencerDetailsPage from './pages/InfluencerDetailsPage';
+import BusinessPage from './pages/BusinessPage';
+import BusinessDetailsPage from './pages/BusinessDetailsPage';
 import i18n from './i18n';
+import { Layout } from './components/ui/LayoutSwitcher';
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -34,10 +37,14 @@ const App: React.FC = () => {
   const [language, setLanguage] = useState(i18n.language);
   const [viewingCampaignId, setViewingCampaignId] = useState<number | null>(null);
   const [viewingInfluencerId, setViewingInfluencerId] = useState<number | null>(null);
+  const [viewingBusinessId, setViewingBusinessId] = useState<number | null>(null);
   const [viewingNetwork, setViewingNetwork] = useState<string | null>(null);
   const [viewingAudienceId, setViewingAudienceId] = useState<number | null>(null);
   const [viewingLocationId, setViewingLocationId] = useState<number | null>(null);
   const [viewingCategoryId, setViewingCategoryId] = useState<number | null>(null);
+  const [sharedLayout, setSharedLayout] = useState<Layout>(() => {
+    return (localStorage.getItem('sharedLayout') as Layout) || 'card';
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -88,6 +95,9 @@ const App: React.FC = () => {
     if (currentPage !== Page.Influencers) {
       setViewingInfluencerId(null);
     }
+    if (currentPage !== Page.Business) {
+      setViewingBusinessId(null);
+    }
     if (currentPage !== Page.Categories) {
       setViewingNetwork(null);
       setViewingAudienceId(null);
@@ -109,12 +119,18 @@ const App: React.FC = () => {
     setTheme(systemIsDark ? Theme.Dark : Theme.Light);
   };
 
+  const handleLayoutChange = (newLayout: Layout) => {
+    setSharedLayout(newLayout);
+    localStorage.setItem('sharedLayout', newLayout);
+  };
+
   const handleSidebarNavigation = (page: Page) => {
     // This function resets the detail view for the target page, ensuring
     // that navigation from the sidebar always goes to the main list/view.
     // This allows clicking the active link to "reload" the page to its root.
     if (page === Page.Campaigns) setViewingCampaignId(null);
     if (page === Page.Influencers) setViewingInfluencerId(null);
+    if (page === Page.Business) setViewingBusinessId(null);
     if (page === Page.Categories) {
         setViewingNetwork(null);
         setViewingAudienceId(null);
@@ -154,7 +170,11 @@ const App: React.FC = () => {
             }}
           />
         ) : (
-          <CampaignsPage onSelectCampaign={(id) => setViewingCampaignId(id)} />
+          <CampaignsPage 
+            onSelectCampaign={(id) => setViewingCampaignId(id)}
+            layout={sharedLayout}
+            onLayoutChange={handleLayoutChange}
+          />
         );
       case Page.Influencers:
         return viewingInfluencerId ? (
@@ -176,7 +196,36 @@ const App: React.FC = () => {
             onSelectInfluencer={(id) => setViewingInfluencerId(id)}
           />
         ) : (
-          <InfluencersPage onSelectInfluencer={(id) => setViewingInfluencerId(id)} />
+          <InfluencersPage 
+            onSelectInfluencer={(id) => setViewingInfluencerId(id)}
+            layout={sharedLayout}
+            onLayoutChange={handleLayoutChange}
+          />
+        );
+      case Page.Business:
+        return viewingBusinessId ? (
+          <BusinessDetailsPage
+            businessId={viewingBusinessId}
+            onBack={() => setViewingBusinessId(null)}
+            onSelectAudience={(id) => {
+                setViewingAudienceId(id);
+                setCurrentPage(Page.Categories);
+            }}
+            onSelectLocation={(id) => {
+                setViewingLocationId(id);
+                setCurrentPage(Page.Map);
+            }}
+            onSelectCategory={(id) => {
+                setViewingCategoryId(id);
+                setCurrentPage(Page.Categories);
+            }}
+          />
+        ) : (
+          <BusinessPage 
+            onSelectBusiness={(id) => setViewingBusinessId(id)} 
+            layout={sharedLayout}
+            onLayoutChange={handleLayoutChange}
+          />
         );
       case Page.CulturalHub:
         return <CulturalHubPage />;
@@ -189,6 +238,10 @@ const App: React.FC = () => {
           onSelectCampaign={(id) => {
             setViewingCampaignId(id);
             setCurrentPage(Page.Campaigns);
+          }}
+          onSelectBusiness={(id) => {
+            setViewingBusinessId(id);
+            setCurrentPage(Page.Business);
           }}
         />
       case Page.Map:
@@ -220,6 +273,10 @@ const App: React.FC = () => {
               setViewingCampaignId(id);
               setCurrentPage(Page.Campaigns);
             }}
+            onSelectBusiness={(id) => {
+                setViewingBusinessId(id);
+                setCurrentPage(Page.Business);
+            }}
           />
         }
         if (viewingAudienceId) {
@@ -234,6 +291,10 @@ const App: React.FC = () => {
                     setViewingCampaignId(id);
                     setCurrentPage(Page.Campaigns);
                 }}
+                onSelectBusiness={(id) => {
+                    setViewingBusinessId(id);
+                    setCurrentPage(Page.Business);
+                }}
             />;
         }
         if (viewingCategoryId) {
@@ -247,6 +308,10 @@ const App: React.FC = () => {
                 onSelectCampaign={(id) => {
                     setViewingCampaignId(id);
                     setCurrentPage(Page.Campaigns);
+                }}
+                onSelectBusiness={(id) => {
+                    setViewingBusinessId(id);
+                    setCurrentPage(Page.Business);
                 }}
             />;
         }

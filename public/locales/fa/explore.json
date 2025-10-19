@@ -21,11 +21,14 @@
   "filter_type_all": "همه",
   "filter_type_influencers": "اینفلوئنسرها",
   "filter_type_campaigns": "کمپین‌ها",
+  "filter_type_businesses": "کسب و کارها",
   "filter_placeholder_audience": "همه مخاطبان",
   "filter_placeholder_category": "همه دسته‌بندی‌ها",
   "filter_placeholder_social": "همه شبکه‌ها",
   "influencers_results_title": "اینفلوئنسرها",
   "campaigns_results_title": "کمپین‌ها",
+  "businesses_results_title": "کسب و کارها",
   "no_influencers_found": "هیچ اینفلوئنسری با فیلترهای انتخاب شده مطابقت ندارد.",
-  "no_campaigns_found": "هیچ کمپینی با فیلترهای انتخاب شده مطابقت ندارد."
+  "no_campaigns_found": "هیچ کمپینی با فیلترهای انتخاب شده مطابقت ندارد.",
+  "no_businesses_found": "هیچ کسب و کاری با فیلترهای انتخاب شده مطابقت ندارد."
 }

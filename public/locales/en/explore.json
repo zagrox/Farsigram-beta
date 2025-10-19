@@ -21,11 +21,14 @@
   "filter_type_all": "All",
   "filter_type_influencers": "Influencers",
   "filter_type_campaigns": "Campaigns",
+  "filter_type_businesses": "Businesses",
   "filter_placeholder_audience": "All Audiences",
   "filter_placeholder_category": "All Categories",
   "filter_placeholder_social": "All Networks",
   "influencers_results_title": "Influencers",
   "campaigns_results_title": "Campaigns",
+  "businesses_results_title": "Businesses",
   "no_influencers_found": "No influencers match the selected filters.",
-  "no_campaigns_found": "No campaigns match the selected filters."
+  "no_campaigns_found": "No campaigns match the selected filters.",
+  "no_businesses_found": "No businesses match the selected filters."
 }
