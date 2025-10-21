@@ -5,28 +5,56 @@ import SectionHeader from '../components/ui/SectionHeader';
 import { CountryCard, CountryCardSkeleton, CombinedCountryData } from '../components/ui/CountryCard';
 import Button from '../components/ui/Button';
 import { API_BASE_URL } from '../constants';
+import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
+import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
+import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
+import CompactBusinessCard, { CompactBusinessCardSkeleton } from '../components/ui/CompactBusinessCard';
 
-// --- TYPE DEFINITIONS (specific to this page) ---
+// --- TYPE DEFINITIONS ---
 
 interface ApiCategory {
   id: number;
   status: string;
   category_parent: string;
-  category_name: number | null;
+  category_name: number | null; // parent id
   category_color: string | null;
 }
-
+interface Campaign {
+  id: number;
+  campaign_image: string;
+  campaign_color: string | null;
+  campaign_goal: string;
+  campaign_title: string;
+}
+interface Influencer {
+  id: number;
+  influencer_name: string;
+  influencer_title: string;
+  influencer_category: number;
+  influencer_location: number;
+  influencer_avatar: string;
+  influencer_hub: boolean;
+  influencer_social: { socials_id: { id: number; social_network: string; social_account: string; } }[];
+  influencer_audience: { audiences_id: { id: number; audience_title: string; } }[];
+}
+interface Business {
+  id: number;
+  business_logo: string;
+  business_name: string;
+  business_slogan: string;
+}
 interface HomePageProps {
   setCurrentPage: (page: Page) => void;
   onSelectLocation: (id: number) => void;
+  onSelectInfluencer: (id: number) => void;
+  onSelectCampaign: (id: number) => void;
+  onSelectBusiness: (id: number) => void;
 }
-
 interface FarsigramLocation {
   id: number;
   country: string;
   country_persian: string;
 }
-
 interface RestCountry {
   name: { common: string };
   flags: { svg: string };
@@ -49,72 +77,98 @@ const ProductCard: React.FC<{ title: string; imageUrl: string }> = ({ title, ima
 
 // --- MAIN COMPONENT ---
 
-const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation }) => {
-  const { t } = useTranslation('home');
+const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation, onSelectInfluencer, onSelectCampaign, onSelectBusiness }) => {
+  const { t, i18n } = useTranslation('home');
+  
+  // Page content state
   const [locations, setLocations] = useState<CombinedCountryData[]>([]);
-  const [categories, setCategories] = useState<ApiCategory[]>([]);
-  const [loadingLocations, setLoadingLocations] = useState(true);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [popularCategories, setPopularCategories] = useState<ApiCategory[]>([]);
+  const [latestInfluencers, setLatestInfluencers] = useState<EnrichedInfluencer[]>([]);
+  const [latestCampaigns, setLatestCampaigns] = useState<Campaign[]>([]);
+  const [latestBusinesses, setLatestBusinesses] = useState<Business[]>([]);
+  
+  // Loading states
+  const [loading, setLoading] = useState(true);
 
-  // Fetch locations
   useEffect(() => {
-    const fetchLocations = async () => {
-      setLoadingLocations(true);
-      try {
-        const farsigramResponse = await fetch(`${API_BASE_URL}/items/locations?limit=20`);
-        const farsigramData = await farsigramResponse.json();
-        const locations: FarsigramLocation[] = farsigramData.data;
+    const fetchAllData = async () => {
+        setLoading(true);
+        try {
+            const [
+                locationsRes,
+                categoriesRes,
+                influencersRes,
+                campaignsRes,
+                businessesRes
+            ] = await Promise.all([
+                fetch(`${API_BASE_URL}/items/locations?limit=20`),
+                fetch(`${API_BASE_URL}/items/categories?fields=id,status,category_parent,category_name,category_color&limit=-1`),
+                fetch(`${API_BASE_URL}/items/influencers?limit=5&sort=-date_created&fields=*,influencer_social.socials_id.*,influencer_audience.audiences_id.*&filter[status][_eq]=published`),
+                fetch(`${API_BASE_URL}/items/campaigns?limit=5&sort=-date_created&fields=id,campaign_image,campaign_color,campaign_goal,campaign_title&filter[status][_eq]=published`),
+                fetch(`${API_BASE_URL}/items/business?limit=5&sort=-date_created&fields=id,business_logo,business_name,business_slogan&filter[status][_eq]=published`),
+            ]);
 
-        const detailPromises = locations.map(loc =>
-          fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
-        );
-        const detailsResults = await Promise.all(detailPromises);
+            // 1. Process Locations
+            const farsigramData = await locationsRes.json();
+            const farsigramLocations: FarsigramLocation[] = farsigramData.data;
+            const detailPromises = farsigramLocations.map(loc =>
+              fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
+            );
+            const detailsResults = await Promise.all(detailPromises);
+            const combinedLocationData = farsigramLocations.map((loc, index) => {
+                const detail = detailsResults[index]?.[0] as RestCountry | undefined;
+                if (!detail || !detail.latlng) return null;
+                return {
+                  id: loc.id, code: loc.country, persianName: loc.country_persian, commonName: detail.name.common,
+                  flagUrl: detail.flags.svg, population: detail.population, latlng: detail.latlng,
+                };
+            }).filter((item): item is CombinedCountryData => item !== null);
+            setLocations(combinedLocationData);
 
-        const combinedData = locations
-          .map((loc, index) => {
-            const detail = detailsResults[index]?.[0] as RestCountry | undefined;
-            if (!detail || !detail.latlng) return null;
-            return {
-              id: loc.id,
-              code: loc.country,
-              persianName: loc.country_persian,
-              commonName: detail.name.common,
-              flagUrl: detail.flags.svg,
-              population: detail.population,
-              latlng: detail.latlng,
-            };
-          })
-          .filter((item): item is CombinedCountryData => item !== null);
+            // Create location map for enrichment
+            const locationsMap = new Map(farsigramLocations.map((loc, index) => {
+                const detail = detailsResults[index]?.[0];
+                let englishName = detail?.name?.common || loc.country_persian;
+                if (loc.country_persian === 'جهانی') englishName = 'Global';
+                return [loc.id, { persian: loc.country_persian, english: englishName }];
+            }));
 
-        setLocations(combinedData);
-      } catch (error) {
-        console.error("Failed to fetch locations:", error);
-      } finally {
-        setLoadingLocations(false);
-      }
+            // 2. Process Categories
+            const categoriesData = await categoriesRes.json();
+            const allCategories: ApiCategory[] = categoriesData.data;
+            const publishedParentCategories = allCategories.filter(cat => cat.status === 'published' && cat.category_name === null);
+            setPopularCategories(publishedParentCategories);
+            const categoriesMap = new Map(allCategories.map(c => [c.id, c.category_parent]));
+
+            // 3. Process Influencers (and enrich)
+            const influencersData = await influencersRes.json();
+            const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => {
+                const locationInfo = locationsMap.get(inf.influencer_location);
+                const locationName = i18n.language === 'fa' ? (locationInfo?.persian || 'N/A') : (locationInfo?.english || locationInfo?.persian || 'N/A');
+                return {
+                  id: inf.id, influencer_name: inf.influencer_name, influencer_title: inf.influencer_title,
+                  influencer_avatar: inf.influencer_avatar, categoryName: categoriesMap.get(inf.influencer_category) || 'N/A',
+                  locationName: locationName, isHubMember: inf.influencer_hub || false,
+                  socials: inf.influencer_social?.map(j => j.socials_id).filter(Boolean) || [],
+                  audiences: inf.influencer_audience?.map(j => ({ id: j.audiences_id.id, name: j.audiences_id.audience_title })).filter(a => a.id && a.name) || [],
+                };
+            });
+            setLatestInfluencers(enrichedInfluencers);
+
+            // 4. Process Campaigns & Businesses
+            const campaignsData = await campaignsRes.json();
+            setLatestCampaigns(campaignsData.data);
+            const businessesData = await businessesRes.json();
+            setLatestBusinesses(businessesData.data);
+
+        } catch (error) {
+            console.error("Failed to fetch homepage data:", error);
+        } finally {
+            setLoading(false);
+        }
     };
-    fetchLocations();
-  }, []);
-
-  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setLoadingCategories(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/items/categories`);
-        const data = await response.json();
-        const publishedParentCategories: ApiCategory[] = data.data.filter(
-          (cat: ApiCategory) => cat.status === 'published' && cat.category_name === null
-        );
-        setCategories(publishedParentCategories);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+    fetchAllData();
+  }, [i18n.language]);
 
   const sampleProducts = [
     { id: 1, title: t('sampleProduct1'), imageUrl: 'https://picsum.photos/seed/product1/300/300' },
@@ -146,9 +200,39 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation })
       <section>
         <SectionHeader title={t('exploreSectionTitle')} onViewAll={() => setCurrentPage(Page.Map)} />
         <div className="flex items-center gap-8 overflow-x-auto pb-4 pt-2 no-scrollbar snap-x snap-mandatory">
-          {loadingLocations
-            ? Array.from({ length: 20 }).map((_, i) => <CountryCardSkeleton key={i} />)
+          {loading
+            ? Array.from({ length: 10 }).map((_, i) => <CountryCardSkeleton key={i} />)
             : locations.map(country => <CountryCard key={country.id} country={country} onSelect={() => onSelectLocation(country.id)} />)}
+        </div>
+      </section>
+      
+      {/* Latest Influencers Section */}
+      <section>
+        <SectionHeader title={t('latestInfluencersSectionTitle')} onViewAll={() => setCurrentPage(Page.Influencers)} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+          {loading
+            ? Array.from({ length: 5 }).map((_, i) => <CompactInfluencerCardSkeleton key={i} />)
+            : latestInfluencers.map(influencer => <CompactInfluencerCard key={influencer.id} influencer={influencer} onSelectInfluencer={onSelectInfluencer} />)}
+        </div>
+      </section>
+      
+      {/* Latest Campaigns Section */}
+      <section>
+        <SectionHeader title={t('latestCampaignsSectionTitle')} onViewAll={() => setCurrentPage(Page.Campaigns)} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+          {loading
+            ? Array.from({ length: 5 }).map((_, i) => <CompactCampaignCardSkeleton key={i} />)
+            : latestCampaigns.map(campaign => <CompactCampaignCard key={campaign.id} campaign={campaign} onSelectCampaign={onSelectCampaign} />)}
+        </div>
+      </section>
+      
+      {/* Latest Businesses Section */}
+      <section>
+        <SectionHeader title={t('latestBusinessesSectionTitle')} onViewAll={() => setCurrentPage(Page.Business)} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+          {loading
+            ? Array.from({ length: 5 }).map((_, i) => <CompactBusinessCardSkeleton key={i} />)
+            : latestBusinesses.map(business => <CompactBusinessCard key={business.id} business={business} onSelectBusiness={onSelectBusiness} />)}
         </div>
       </section>
       
@@ -183,7 +267,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation })
       {/* Categories Section */}
       <section>
         <SectionHeader title={t('categoriesSectionTitle')} onViewAll={() => setCurrentPage(Page.Categories)} />
-        {loadingCategories ? (
+        {loading ? (
           <div className="flex flex-wrap gap-3 animate-pulse">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-9 w-32 bg-neutral-200 dark:bg-neutral-700 rounded-full"></div>
@@ -191,7 +275,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation })
           </div>
         ) : (
           <div className="flex flex-wrap gap-3">
-            {categories.map(cat => (
+            {popularCategories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setCurrentPage(Page.Categories)}

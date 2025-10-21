@@ -160,6 +160,18 @@ const App: React.FC = () => {
               setViewingLocationId(id);
               setCurrentPage(Page.Map);
             }} 
+            onSelectInfluencer={(id) => {
+              setViewingInfluencerId(id);
+              setCurrentPage(Page.Influencers);
+            }}
+            onSelectCampaign={(id) => {
+              setViewingCampaignId(id);
+              setCurrentPage(Page.Campaigns);
+            }}
+            onSelectBusiness={(id) => {
+              setViewingBusinessId(id);
+              setCurrentPage(Page.Business);
+            }}
         />;
       case Page.Campaigns:
         return viewingCampaignId ? (
@@ -362,6 +374,18 @@ const App: React.FC = () => {
               setViewingLocationId(id);
               setCurrentPage(Page.Map);
           }} 
+          onSelectInfluencer={(id) => {
+            setViewingInfluencerId(id);
+            setCurrentPage(Page.Influencers);
+          }}
+          onSelectCampaign={(id) => {
+            setViewingCampaignId(id);
+            setCurrentPage(Page.Campaigns);
+          }}
+          onSelectBusiness={(id) => {
+            setViewingBusinessId(id);
+            setCurrentPage(Page.Business);
+          }}
         />;
     }
   };

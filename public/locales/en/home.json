@@ -20,5 +20,8 @@
   "sampleProduct3": "Turquoise Jewelry",
   "sampleProduct4": "Enamel Plate (Minakari)",
 
-  "categoriesSectionTitle": "Popular Categories"
+  "categoriesSectionTitle": "Popular Categories",
+  "latestInfluencersSectionTitle": "Latest Influencers",
+  "latestCampaignsSectionTitle": "Latest Campaigns",
+  "latestBusinessesSectionTitle": "Latest Businesses"
 }
