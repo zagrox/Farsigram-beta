@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../constants';
 import Input from '../components/ui/Input';
@@ -61,16 +61,12 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
     const [businesses, setBusinesses] = useState<Business[]>([]);
     
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
     
     const [internalQuery, setInternalQuery] = useState(query);
 
     // Data for enriching influencers
     const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
     const [locations, setLocations] = useState<{ id: number; persian: string, english: string }[]>([]);
-
-    const categoriesMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
-    const locationsMap = useMemo(() => new Map(locations.map(l => [l.id, l])), [locations]);
 
     // Sync local input state if the global query prop changes (e.g., from header search)
     useEffect(() => {
@@ -88,7 +84,6 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
 
         const fetchData = async () => {
             setLoading(true);
-            setError(null);
             
             try {
                 // Fetch enrichment data first
@@ -97,7 +92,8 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
                     fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&limit=-1`),
                 ]);
                 if (!categoriesRes.ok || !locationsRes.ok) throw new Error('Failed to fetch enrichment data');
-                const categoriesData = await categoriesRes.json();
+                // FIX: Add type assertion to the result of `categoriesRes.json()` to resolve the type error on line 157.
+                const categoriesData = await categoriesRes.json() as { data: Category[] };
                 setCategories(categoriesData.data.map((c: Category) => ({ id: c.id, name: c.category_parent })));
 
                 const locationsData = await locationsRes.json();
@@ -175,14 +171,6 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
                 setBusinesses(businessesData.data);
             } catch (err) {
                 console.error("Failed to fetch search data:", err);
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else if (typeof err === 'string') {
-                    setError(err);
-                } else {
-                    // FIX: The caught error `err` is of type `unknown` and cannot be directly assigned to state expecting a string. Convert it to a string first.
-                    setError(String(err));
-                }
             } finally {
                 setLoading(false);
             }

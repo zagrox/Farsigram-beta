@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import Button from '../components/ui/Button';
 import InfluencerCard, { InfluencerCardSkeleton, EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import { ImageCard, ImageCardSkeleton } from '../components/ui/ImageCard';

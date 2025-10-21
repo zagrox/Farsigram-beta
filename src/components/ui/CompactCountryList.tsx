@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CombinedCountryData } from './CountryCard';
 import { API_BASE_URL } from '../../constants';
-import { CombinedCountryData } from './CountryCard'; // Re-use the same type
 import { UsersIcon } from '../Icons';
 
 const formatPopulation = (pop: number): string => {
@@ -52,7 +52,7 @@ const CompactCountryList: React.FC = () => {
                         };
                     })
                     .filter((item: CombinedCountryData | null): item is CombinedCountryData => item !== null)
-                    .sort((a, b) => b.population - a.population); // Sort by population descending
+                    .sort((a: CombinedCountryData, b: CombinedCountryData) => b.population - a.population); // Sort by population descending
 
                 setCountries(combinedData);
             } catch (err) {

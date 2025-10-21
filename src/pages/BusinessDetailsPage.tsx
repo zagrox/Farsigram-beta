@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CategoryIcon, UsersIcon, MapPinIcon, TagIcon, SocialIcon, GlobeAltIcon, PhoneIcon, GiftIcon } from '../components/Icons';
+import { CategoryIcon, UsersIcon, MapPinIcon, SocialIcon, GlobeAltIcon, PhoneIcon, GiftIcon } from '../components/Icons';
 import { API_BASE_URL, ASSETS_URL } from '../constants';
 
 // --- TYPE DEFINITIONS ---
@@ -301,7 +301,7 @@ const BusinessDetailsPage: React.FC<BusinessDetailsPageProps> = ({ businessId, o
                  </div>
              </InfoBlock>
         )}
-        {relatedData?.audience?.length > 0 && (
+        {relatedData?.audience && relatedData.audience.length > 0 && (
              <InfoBlock icon={<UsersIcon />} label={t('audience')} color={themeColor}>
                 <div className="flex flex-wrap gap-2 justify-end">
                     {relatedData.audience.map(item => (

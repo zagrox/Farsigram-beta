@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { useTranslation } from 'react-i18next';
+import { CombinedCountryData } from './ui/CountryCard';
 
 const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
 const shadowUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png';
@@ -15,14 +16,6 @@ const DefaultIcon = L.icon({
 });
 
 L.Marker.prototype.options.icon = DefaultIcon;
-
-interface CombinedCountryData {
-  id: number;
-  commonName: string;
-  latlng: [number, number];
-  flagUrl: string;
-  persianName: string;
-}
 
 interface MapComponentProps {
   countries: CombinedCountryData[];

@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Page } from '../types';
 import { NAVIGATION_ITEMS } from '../constants';
-import { ProfileIcon, SettingsIcon, LogoutIcon, ChevronLeftIcon, ChevronRightIcon, FarsigramIcon } from './Icons';
+import { ProfileIcon, ChevronLeftIcon, ChevronRightIcon, FarsigramIcon } from './Icons';
 
 interface SidebarProps {
   currentPage: Page;

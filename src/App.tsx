@@ -35,7 +35,7 @@ const App: React.FC = () => {
   });
   const [currentPage, setCurrentPage] = useState<Page>(Page.Home);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState<boolean>(true);
-  const [language, setLanguage] = useState(i18n.language);
+  const [, setLanguageKey] = useState(i18n.language);
   const [viewingCampaignId, setViewingCampaignId] = useState<number | null>(null);
   const [viewingInfluencerId, setViewingInfluencerId] = useState<number | null>(null);
   const [viewingBusinessId, setViewingBusinessId] = useState<number | null>(null);
@@ -78,7 +78,7 @@ const App: React.FC = () => {
     const handleLanguageChange = (lng: string) => {
       document.documentElement.lang = lng;
       document.documentElement.dir = i18n.dir(lng);
-      setLanguage(lng); // Force re-render on language change
+      setLanguageKey(lng); // Force re-render on language change
     };
 
     i18n.on('languageChanged', handleLanguageChange);

@@ -242,7 +242,7 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
             <p className="font-bold text-neutral-800 dark:text-neutral-200 text-lg">{campaign.campaign_goal}</p>
         </InfoBlock>
         
-        {relatedData?.audience?.length > 0 && (
+        {relatedData?.audience && relatedData.audience.length > 0 && (
              <InfoBlock icon={<UsersIcon />} label={t('audience')} color={themeColor}>
                 <div className="flex flex-wrap gap-2">
                     {relatedData.audience.map(item => (
@@ -258,7 +258,7 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
             </InfoBlock>
         )}
 
-        {relatedData?.locations?.length > 0 && (
+        {relatedData?.locations && relatedData.locations.length > 0 && (
              <InfoBlock icon={<MapPinIcon />} label={t('location')} color={themeColor}>
                 <div className="flex flex-wrap gap-2">
                     {relatedData.locations.map(item => (
@@ -274,7 +274,7 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
             </InfoBlock>
         )}
 
-        {relatedData?.types?.length > 0 && (
+        {relatedData?.types && relatedData.types.length > 0 && (
              <InfoBlock icon={<TagIcon />} label={t('type')} color={themeColor}>
                 <div className="flex flex-wrap gap-2">
                     {relatedData.types.map(item => (
