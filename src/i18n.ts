@@ -26,7 +26,7 @@ i18n
     ],
     defaultNS: 'common',
     backend: {
-      loadPath: '/public/locales/{{lng}}/{{ns}}.json',
+      loadPath: '/locales/{{lng}}/{{ns}}.json',
     },
     interpolation: {
       escapeValue: false, // react already safes from xss

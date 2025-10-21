@@ -180,7 +180,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
                 } else if (typeof err === 'string') {
                     setError(err);
                 } else {
-                    // FIX: Convert unknown error type to string before setting state
+                    // FIX: The caught error `err` is of type `unknown` and cannot be directly assigned to state expecting a string. Convert it to a string first.
                     setError(String(err));
                 }
             } finally {
