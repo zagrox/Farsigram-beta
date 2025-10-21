@@ -64,10 +64,6 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
     
     const [internalQuery, setInternalQuery] = useState(query);
 
-    // Data for enriching influencers
-    const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
-    const [locations, setLocations] = useState<{ id: number; persian: string, english: string }[]>([]);
-
     // Sync local input state if the global query prop changes (e.g., from header search)
     useEffect(() => {
         setInternalQuery(query);
@@ -92,9 +88,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
                     fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&limit=-1`),
                 ]);
                 if (!categoriesRes.ok || !locationsRes.ok) throw new Error('Failed to fetch enrichment data');
-                // FIX: Add type assertion to the result of `categoriesRes.json()` to resolve the type error on line 157.
                 const categoriesData = await categoriesRes.json() as { data: Category[] };
-                setCategories(categoriesData.data.map((c: Category) => ({ id: c.id, name: c.category_parent })));
 
                 const locationsData = await locationsRes.json();
                 const farsigramLocations: Location[] = locationsData.data;
@@ -110,7 +104,6 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
                     }
                     return { id: loc.id, persian: loc.country_persian, english: englishName };
                 });
-                setLocations(mappedLocations);
 
                 // Now fetch search results
                 const searchFilter = (fields: string[]) => ({
