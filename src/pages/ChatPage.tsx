@@ -467,7 +467,7 @@ Available Search Filters for your tools (use the English names for the API call)
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = userInput.trim();
-    if (!text || isLoading) return;
+    if (!text || isLoading || !filtersLoaded) return;
 
     const newUserContent: Content = { role: 'user', parts: [{ text }] };
     setHistory(prev => [...prev, newUserContent]);
@@ -491,33 +491,43 @@ Available Search Filters for your tools (use the English names for the API call)
         });
 
         const lastCandidate = response.candidates?.[0];
-        if (!lastCandidate) throw new Error("No response from model.");
+        if (!lastCandidate || !lastCandidate.content) {
+            throw new Error("No response content from model.");
+        }
         
         const lastPart = lastCandidate.content.parts[0];
+        if (!lastPart) {
+            throw new Error("No parts in model response.");
+        }
 
         if (lastPart.functionCall) {
             modelHistory.push(lastCandidate.content);
             const fc = lastPart.functionCall;
             let resultText: string;
 
-            if (fc.name === 'searchFarsigram') {
-                const { entityType, searchTerm, category, location, audience } = fc.args;
-                const apiResult = await searchFarsigramInApi(entityType as string, searchTerm as string | undefined, category as string | undefined, location as string | undefined, audience as string | undefined);
-                try {
-                    const parsed = JSON.parse(apiResult);
-                    resultText = parsed.summary;
-                    searchResultsPayload = parsed.results;
-                } catch (e) {
-                    resultText = apiResult;
+            if (fc.args) {
+                if (fc.name === 'searchFarsigram') {
+                    const { entityType, searchTerm, category, location, audience } = fc.args as any;
+                    const apiResult = await searchFarsigramInApi(entityType, searchTerm, category, location, audience);
+                    try {
+                        const parsed = JSON.parse(apiResult);
+                        resultText = parsed.summary;
+                        searchResultsPayload = parsed.results;
+                    } catch (e) {
+                        resultText = apiResult;
+                        searchResultsPayload = undefined;
+                    }
+                } else if (fc.name === 'getFarsigramItemDetails') {
+                    const { entityType, name } = fc.args as any;
+                    resultText = await getFarsigramItemDetailsFromApi(entityType, name);
                     searchResultsPayload = undefined;
+                } else {
+                    resultText = `Unknown function call: ${fc.name}`;
                 }
-            } else if (fc.name === 'getFarsigramItemDetails') {
-                const { entityType, name } = fc.args;
-                resultText = await getFarsigramItemDetailsFromApi(entityType as string, name as string);
-                searchResultsPayload = undefined;
             } else {
-                resultText = `Unknown function call: ${fc.name}`;
+                resultText = `Function call ${fc.name} received without arguments.`;
             }
+
 
             modelHistory.push({
                 role: 'model',
@@ -624,12 +634,14 @@ Available Search Filters for your tools (use the English names for the API call)
                     scriptProcessorRef.current.connect(inputAudioContextRef.current.destination);
                 },
                 onmessage: async (message: LiveServerMessage) => {
-                    if (message.toolCall) {
+                    if (message.toolCall?.functionCalls) {
                          for (const fc of message.toolCall.functionCalls) {
                             let resultText = '';
+                            if (!fc.args) continue;
+
                             if (fc.name === 'searchFarsigram') {
-                                const { entityType, searchTerm, category, location, audience } = fc.args;
-                                const apiResult = await searchFarsigramInApi(entityType as string, searchTerm as string, category as string, location as string, audience as string);
+                                const { entityType, searchTerm, category, location, audience } = fc.args as any;
+                                const apiResult = await searchFarsigramInApi(entityType, searchTerm, category, location, audience);
                                 try {
                                     const parsed = JSON.parse(apiResult);
                                     resultText = parsed.summary;
@@ -639,7 +651,8 @@ Available Search Filters for your tools (use the English names for the API call)
                                     searchResultsForTurnRef.current = null;
                                 }
                             } else if (fc.name === 'getFarsigramItemDetails') {
-                                resultText = await getFarsigramItemDetailsFromApi(fc.args.entityType as string, fc.args.name as string);
+                                const { entityType, name } = fc.args as any;
+                                resultText = await getFarsigramItemDetailsFromApi(entityType, name);
                                 searchResultsForTurnRef.current = null;
                             }
                             sessionPromiseRef.current?.then(s => s.sendToolResponse({ functionResponses: { id: fc.id, name: fc.name, response: { result: resultText } } }));
@@ -679,7 +692,7 @@ Available Search Filters for your tools (use the English names for the API call)
                         setLiveModelTranscript('');
                     }
                     
-                    const audioData = message.serverContent?.modelTurn?.parts[0]?.inlineData.data;
+                    const audioData = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
                     if (audioData && outputAudioContextRef.current) {
                         const outputCtx = outputAudioContextRef.current;
                         nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputCtx.currentTime);
@@ -742,7 +755,7 @@ Available Search Filters for your tools (use the English names for the API call)
     <div className="flex flex-col h-full max-w-4xl mx-auto bg-white dark:bg-neutral-800/50 rounded-xl shadow-lg">
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6">
         {history.map((msg, index) => {
-            const textPart = msg.parts.find(p => p.text);
+            const textPart = msg.parts?.find(p => p.text);
             if (!textPart) return null;
 
             return (
