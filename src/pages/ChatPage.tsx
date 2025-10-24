@@ -495,7 +495,7 @@ Available Search Filters for your tools (use the English names for the API call)
             throw new Error("No response content from model.");
         }
         
-        const lastPart = lastCandidate.content.parts[0];
+        const lastPart = lastCandidate.content.parts?.[0];
         if (!lastPart) {
             throw new Error("No parts in model response.");
         }
