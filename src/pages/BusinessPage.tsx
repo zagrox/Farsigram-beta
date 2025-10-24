@@ -76,10 +76,10 @@ const BusinessPage: React.FC<BusinessPageProps> = ({ onSelectBusiness, layout, o
             }
 
             const categoriesData = await categoriesRes.json();
-            setCategories(categoriesData.data.map((c: { id: number; category_parent: string }) => ({ id: c.id, name: c.category_parent })));
+            setCategories((categoriesData?.data ?? []).map((c: { id: number; category_parent: string }) => ({ id: c.id, name: c.category_parent })));
 
             const locationsData = await locationsRes.json();
-            const farsigramLocations: {id: number, country_persian: string, country: string}[] = locationsData.data;
+            const farsigramLocations: {id: number, country_persian: string, country: string}[] = locationsData?.data ?? [];
             const detailPromises = farsigramLocations.map(loc =>
                 fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
             );
@@ -99,7 +99,7 @@ const BusinessPage: React.FC<BusinessPageProps> = ({ onSelectBusiness, layout, o
             setLocations(combinedLocations);
 
             const audiencesData = await audiencesRes.json();
-            setAudiences(audiencesData.data.map((a: { id: number; audience_title: string }) => ({ id: a.id, name: a.audience_title })));
+            setAudiences((audiencesData?.data ?? []).map((a: { id: number; audience_title: string }) => ({ id: a.id, name: a.audience_title })));
             
         } catch (error) {
             console.error("Failed to fetch filter data:", error);
@@ -151,7 +151,7 @@ const BusinessPage: React.FC<BusinessPageProps> = ({ onSelectBusiness, layout, o
           throw new Error('Network response was not ok');
         }
         const data = await res.json();
-        setBusinesses(data.data);
+        setBusinesses(data?.data ?? []);
       } catch (err) {
         console.error("Failed to fetch businesses data:", err);
         setError(t('error'));

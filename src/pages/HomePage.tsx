@@ -9,6 +9,7 @@ import { EnrichedInfluencer } from '../components/ui/InfluencerCard';
 import CompactInfluencerCard, { CompactInfluencerCardSkeleton } from '../components/ui/CompactInfluencerCard';
 import CompactCampaignCard, { CompactCampaignCardSkeleton } from '../components/ui/CompactCampaignCard';
 import CompactBusinessCard, { CompactBusinessCardSkeleton } from '../components/ui/CompactBusinessCard';
+import AiWidget from '../components/AiWidget';
 
 // --- TYPE DEFINITIONS ---
 
@@ -110,7 +111,7 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation, o
 
             // 1. Process Locations
             const farsigramData = await locationsRes.json();
-            const farsigramLocations: FarsigramLocation[] = farsigramData.data;
+            const farsigramLocations: FarsigramLocation[] = farsigramData?.data ?? [];
             const detailPromises = farsigramLocations.map(loc =>
               fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
             );
@@ -135,14 +136,14 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation, o
 
             // 2. Process Categories
             const categoriesData = await categoriesRes.json();
-            const allCategories: ApiCategory[] = categoriesData.data;
+            const allCategories: ApiCategory[] = categoriesData?.data ?? [];
             const publishedParentCategories = allCategories.filter(cat => cat.status === 'published' && cat.category_name === null);
             setPopularCategories(publishedParentCategories);
             const categoriesMap = new Map(allCategories.map(c => [c.id, c.category_parent]));
 
             // 3. Process Influencers (and enrich)
             const influencersData = await influencersRes.json();
-            const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => {
+            const enrichedInfluencers = (influencersData?.data ?? []).map((inf: Influencer): EnrichedInfluencer => {
                 const locationInfo = locationsMap.get(inf.influencer_location);
                 const locationName = i18n.language === 'fa' ? (locationInfo?.persian || 'N/A') : (locationInfo?.english || locationInfo?.persian || 'N/A');
                 return {
@@ -157,9 +158,9 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation, o
 
             // 4. Process Campaigns & Businesses
             const campaignsData = await campaignsRes.json();
-            setLatestCampaigns(campaignsData.data);
+            setLatestCampaigns(campaignsData?.data ?? []);
             const businessesData = await businessesRes.json();
-            setLatestBusinesses(businessesData.data);
+            setLatestBusinesses(businessesData?.data ?? []);
 
         } catch (error) {
             console.error("Failed to fetch homepage data:", error);
@@ -288,6 +289,8 @@ const HomePage: React.FC<HomePageProps> = ({ setCurrentPage, onSelectLocation, o
           </div>
         )}
       </section>
+
+      <AiWidget onNavigate={setCurrentPage} />
     </div>
   );
 };

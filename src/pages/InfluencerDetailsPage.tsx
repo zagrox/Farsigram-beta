@@ -105,7 +105,10 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
         const influencerRes = await fetch(`${API_BASE_URL}/items/influencers/${influencerId}?fields=*,influencer_social.socials_id.*`);
         if (!influencerRes.ok) throw new Error('Influencer not found');
         const influencerData = await influencerRes.json();
-        const inf: Influencer = influencerData.data;
+        const inf: Influencer | null = influencerData?.data;
+        if (!inf) {
+            throw new Error('Influencer data is missing in API response');
+        }
         setInfluencer(inf);
         
         const socials: SocialProfile[] = inf.influencer_social?.map(item => item.socials_id).filter(Boolean) || [];
@@ -116,7 +119,7 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
                 const res = await fetch(`${API_BASE_URL}/items/${endpoint}/${id}?fields=id,${nameKey}`);
                 if (!res.ok) return null;
                 const data = await res.json();
-                const item = data.data;
+                const item = data?.data;
                 if (item) {
                     return { id: item.id, name: item[nameKey] || `ID: ${item.id}` };
                 }
@@ -133,8 +136,9 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
                 const res = await fetch(`${API_BASE_URL}/items/${endpoint}?fields=id,${nameKey}&filter[id][_in]=${ids.join(',')}`);
                 if (!res.ok) return [];
                 const data = await res.json();
-                if (data && Array.isArray(data.data)) {
-                    return data.data.map((item: any) => ({ id: item.id, name: item[nameKey] || `ID: ${item.id}` }));
+                const items = data?.data;
+                if (Array.isArray(items)) {
+                    return items.map((item: any) => ({ id: item.id, name: item[nameKey] || `ID: ${item.id}` }));
                 }
                 return [];
             } catch (err) {
@@ -149,7 +153,7 @@ const InfluencerDetailsPage: React.FC<InfluencerDetailsPageProps> = ({ influence
                 const locRes = await fetch(`${API_BASE_URL}/items/locations/${locationId}?fields=id,country,country_persian`);
                 if (!locRes.ok) return null;
                 const locData = await locRes.json();
-                const locationItem = locData.data;
+                const locationItem = locData?.data;
                 if (!locationItem) return null;
 
                 const details: LocationRelatedItem = {

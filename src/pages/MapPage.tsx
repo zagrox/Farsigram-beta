@@ -41,7 +41,7 @@ const MapPage: React.FC<MapPageProps> = ({ onSelectLocation }) => {
         const farsigramResponse = await fetch(`${API_BASE_URL}/items/locations`);
         if (!farsigramResponse.ok) throw new Error('Failed to fetch Farsigram locations');
         const farsigramData = await farsigramResponse.json();
-        const locations: FarsigramLocation[] = farsigramData.data;
+        const locations: FarsigramLocation[] = farsigramData?.data ?? [];
         
         const detailPromises = locations.map(loc =>
           fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`)

@@ -88,9 +88,9 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ onSelectCampaign, layout,
             const audiencesData = await audiencesRes.json();
             const socialsData = await socialsRes.json();
 
-            setCategories(categoriesData.data.map((c: { id: number; category_parent: string }) => ({ id: c.id, name: c.category_parent })));
+            setCategories((categoriesData?.data ?? []).map((c: { id: number; category_parent: string }) => ({ id: c.id, name: c.category_parent })));
             
-            const farsigramLocations: {id: number, country_persian: string, country: string}[] = locationsData.data;
+            const farsigramLocations: {id: number, country_persian: string, country: string}[] = locationsData?.data ?? [];
             const detailPromises = farsigramLocations.map(loc =>
                 fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
             );
@@ -110,9 +110,9 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ onSelectCampaign, layout,
             });
             setLocations(combinedLocations);
             
-            setAudiences(audiencesData.data.map((a: { id: number; audience_title: string }) => ({ id: a.id, name: a.audience_title })));
+            setAudiences((audiencesData?.data ?? []).map((a: { id: number; audience_title: string }) => ({ id: a.id, name: a.audience_title })));
 
-            const allSocialLinks: { social_network: string }[] = socialsData.data;
+            const allSocialLinks: { social_network: string }[] = socialsData?.data ?? [];
             const uniqueNetworks = [...new Set(allSocialLinks.map(s => s.social_network).filter(Boolean))];
             setSocialNetworks(uniqueNetworks.map(url => ({ id: url, name: getSocialNetworkName(url) })));
 
@@ -184,7 +184,7 @@ const CampaignsPage: React.FC<CampaignsPageProps> = ({ onSelectCampaign, layout,
         }
 
         const campaignsData = await campaignsRes.json();
-        setCampaigns(campaignsData.data);
+        setCampaigns(campaignsData?.data ?? []);
       } catch (err) {
         console.error("Failed to fetch campaigns data:", err);
         setError(t('error'));

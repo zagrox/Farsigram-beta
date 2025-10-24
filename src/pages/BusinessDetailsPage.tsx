@@ -101,7 +101,10 @@ const BusinessDetailsPage: React.FC<BusinessDetailsPageProps> = ({ businessId, o
         if (!businessRes.ok) throw new Error('Business not found');
         
         const businessData = await businessRes.json();
-        const biz: Business = businessData.data;
+        const biz: Business | null = businessData?.data;
+        if (!biz) {
+          throw new Error('Business data could not be loaded from the API.');
+        }
         setBusiness(biz);
 
         const fetchMultiple = async (endpoint: string, ids: number[], nameKey: string): Promise<RelatedItem[]> => {
@@ -109,7 +112,10 @@ const BusinessDetailsPage: React.FC<BusinessDetailsPageProps> = ({ businessId, o
             const res = await fetch(`${API_BASE_URL}/items/${endpoint}?fields=id,${nameKey}&filter[id][_in]=${ids.join(',')}`);
             if (!res.ok) return [];
             const data = await res.json();
-            return data.data.map((item: any) => ({ id: item.id, name: item[nameKey] }));
+            if (data && Array.isArray(data?.data)) {
+              return data.data.map((item: any) => ({ id: item.id, name: item[nameKey] }));
+            }
+            return [];
         };
         
         const fetchSingle = async (endpoint: string, id: number, nameKey: string): Promise<RelatedItem | null> => {
@@ -117,7 +123,10 @@ const BusinessDetailsPage: React.FC<BusinessDetailsPageProps> = ({ businessId, o
             const res = await fetch(`${API_BASE_URL}/items/${endpoint}/${id}?fields=id,${nameKey}`);
             if (!res.ok) return null;
             const data = await res.json();
-            return { id: data.data.id, name: data.data[nameKey] };
+            if (data && data.data) {
+                return { id: data.data.id, name: data.data[nameKey] };
+            }
+            return null;
         };
 
         const fetchLocationDetails = async (id: number): Promise<RelatedItem | null> => {
@@ -126,7 +135,7 @@ const BusinessDetailsPage: React.FC<BusinessDetailsPageProps> = ({ businessId, o
                 const locRes = await fetch(`${API_BASE_URL}/items/locations/${id}?fields=id,country,country_persian`);
                 if (!locRes.ok) return null;
                 const locData = await locRes.json();
-                const detail = locData.data;
+                const detail = locData?.data;
                 if (!detail) return null;
                 
                 let englishName = detail.country_persian; // fallback
@@ -135,14 +144,16 @@ const BusinessDetailsPage: React.FC<BusinessDetailsPageProps> = ({ businessId, o
                         const restCountriesRes = await fetch(`https://restcountries.com/v3.1/alpha/${detail.country}`);
                         if (restCountriesRes.ok) {
                             const restData = await restCountriesRes.json();
-                            englishName = restData[0].name.common;
+                            const countryDetail = restData[0];
+                            if (countryDetail && countryDetail.name) {
+                                englishName = countryDetail.name.common;
+                            }
                         }
                     } catch (e) {
                         console.warn(`Could not fetch country details for ${detail.country}`);
                     }
                 }
-
-                if (detail.country_persian === 'جهانی') {
+                 if (detail.country_persian === 'جهانی') {
                     englishName = 'Global';
                 }
 
@@ -158,7 +169,7 @@ const BusinessDetailsPage: React.FC<BusinessDetailsPageProps> = ({ businessId, o
                 const res = await fetch(`${API_BASE_URL}/items/socials?fields=*&filter[id][_in]=${ids.join(',')}`);
                 if (!res.ok) return [];
                 const data = await res.json();
-                return data.data || [];
+                return data?.data || [];
             } catch (e) {
                 return [];
             }
@@ -170,7 +181,7 @@ const BusinessDetailsPage: React.FC<BusinessDetailsPageProps> = ({ businessId, o
                 const junctionRes = await fetch(`${API_BASE_URL}/items/business_audiences?fields=audiences_id&filter[id][_in]=${junctionIds.join(',')}`);
                 if (!junctionRes.ok) return [];
                 const junctionData = await junctionRes.json();
-                return junctionData.data
+                return junctionData?.data
                     ?.map((item: { audiences_id: number }) => item.audiences_id)
                     .filter((id: number | null): id is number => id !== null) || [];
             } catch (error) {

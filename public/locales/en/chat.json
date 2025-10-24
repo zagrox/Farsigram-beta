@@ -1,0 +1,17 @@
+{
+  "title": "AI Assistant",
+  "placeholder": "Ask about influencers, campaigns, businesses...",
+  "initial_message": "Hello! I am Farsigram's helpful assistant. How can I help you find what you're looking for today? You can type or use the microphone to talk.",
+  "send_message": "Send message",
+  "user_avatar": "Y",
+  "model_avatar": "A",
+  "start_voice": "Start voice conversation",
+  "stop_voice": "Stop voice conversation",
+  "status_idle": "Ready for voice input",
+  "status_connecting": "Connecting...",
+  "status_connected": "Listening...",
+  "status_closing": "Disconnecting...",
+  "status_closed": "Disconnected",
+  "status_error": "Connection error",
+  "mic_error": "Could not access microphone. Please check your browser permissions."
+}

@@ -37,6 +37,11 @@ import {
   BriefcaseIcon,
   GlobeAltIcon,
   DevicePhoneMobileIcon,
+  MicrophoneIcon,
+  // FIX: Import PaperAirplaneIcon to make it available for use.
+  PaperAirplaneIcon,
+  StopIcon,
+  CpuChipIcon,
 } from '@heroicons/react/24/outline';
 
 // Re-exporting from Heroicons with aliases to maintain consistency
@@ -76,6 +81,11 @@ export {
   XMarkIcon,
   GlobeAltIcon,
   DevicePhoneMobileIcon as PhoneIcon,
+  MicrophoneIcon,
+  // FIX: Export PaperAirplaneIcon to make it available for use.
+  PaperAirplaneIcon,
+  StopIcon,
+  CpuChipIcon as RobotIcon,
 };
 
 // Keep custom brand icon

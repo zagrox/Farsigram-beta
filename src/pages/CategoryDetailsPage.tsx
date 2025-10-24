@@ -84,14 +84,22 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
                 // 1. Process Category details
                 if (!categoryRes.ok) throw new Error('Could not fetch category details');
                 const categoryData = await categoryRes.json();
-                setCategory(categoryData.data);
+                const fetchedCategory: Category | null = categoryData?.data;
+                if (!fetchedCategory) {
+                    throw new Error('Category data not found in API response');
+                }
+                setCategory(fetchedCategory);
 
                 // 2. Process influencers (with enrichment)
                 if (!influencersRes.ok || !locationsRes.ok) throw new Error(t('error_loading_influencers_for_category'));
                 const influencersData = await influencersRes.json();
                 const locationsData = await locationsRes.json();
                 
-                const farsigramLocations: Location[] = locationsData.data;
+                if (!influencersData?.data || !locationsData?.data) {
+                    throw new Error('Influencer or location list data is missing');
+                }
+
+                const farsigramLocations: Location[] = locationsData?.data ?? [];
                 const detailPromises = farsigramLocations.map(loc =>
                     fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
                 );
@@ -105,7 +113,7 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
                     }];
                 }));
 
-                const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => {
+                const enrichedInfluencers = (influencersData?.data ?? []).map((inf: Influencer): EnrichedInfluencer => {
                     const locationInfo = locationsMap.get(inf.influencer_location);
                     const locationName = i18n.language === 'fa' 
                         ? (locationInfo?.persian || 'N/A') 
@@ -116,7 +124,7 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
                       influencer_name: inf.influencer_name,
                       influencer_title: inf.influencer_title,
                       influencer_avatar: inf.influencer_avatar,
-                      categoryName: categoryData.data.category_parent,
+                      categoryName: fetchedCategory.category_parent,
                       locationName: locationName,
                       isHubMember: inf.influencer_hub || false,
                       socials: inf.influencer_social?.map(j => j.socials_id).filter(Boolean) || [],
@@ -131,12 +139,12 @@ const CategoryDetailsPage: React.FC<CategoryDetailsPageProps> = ({ categoryId, o
                 // 3. Process campaigns
                 if (!campaignsRes.ok) throw new Error(t('error_loading_campaigns_for_category'));
                 const campaignsData = await campaignsRes.json();
-                setCampaigns(campaignsData.data);
+                setCampaigns(campaignsData?.data || []);
 
                 // 4. Process Businesses
                 if (!businessesRes.ok) throw new Error(t('error_loading_businesses_for_category'));
                 const businessesData = await businessesRes.json();
-                setBusinesses(businessesData.data);
+                setBusinesses(businessesData?.data || []);
 
             } catch (err: any) {
                 console.error("Failed to fetch category data:", err);

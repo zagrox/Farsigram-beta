@@ -84,7 +84,8 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                 const locationRes = await fetch(`${API_BASE_URL}/items/locations/${locationId}`);
                 if (!locationRes.ok) throw new Error('Location not found');
                 const locationData = await locationRes.json();
-                const farsigramLocation = locationData.data;
+                const farsigramLocation = locationData?.data;
+                if (!farsigramLocation) throw new Error('Location not found in API response');
 
                 const restCountriesRes = await fetch(`https://restcountries.com/v3.1/alpha/${farsigramLocation.country}`);
                 if (!restCountriesRes.ok) throw new Error('Country details not found');
@@ -117,9 +118,9 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                 ]);
                 if (!categoriesRes.ok) throw new Error('Failed to fetch categories for enrichment');
                 const categoriesData = await categoriesRes.json();
-                const categoriesMap = new Map<number, string>(categoriesData.data.map((c: Category) => [c.id, c.category_parent]));
+                const categoriesMap = new Map<number, string>((categoriesData?.data ?? []).map((c: Category) => [c.id, c.category_parent]));
 
-                const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => ({
+                const enrichedInfluencers = (influencersData?.data ?? []).map((inf: Influencer): EnrichedInfluencer => ({
                   id: inf.id,
                   influencer_name: inf.influencer_name,
                   influencer_title: inf.influencer_title,
@@ -138,12 +139,12 @@ const LocationDetailsPage: React.FC<LocationDetailsPageProps> = ({ locationId, o
                 // 4. Process Campaigns
                 if (!campaignsPromise.ok) throw new Error('Failed to fetch campaigns');
                 const campaignsData = await campaignsPromise.json();
-                setCampaigns(campaignsData.data);
+                setCampaigns(campaignsData?.data ?? []);
 
                 // 5. Process Businesses
                 if (!businessesPromise.ok) throw new Error('Failed to fetch businesses');
                 const businessesData = await businessesPromise.json();
-                setBusinesses(businessesData.data);
+                setBusinesses(businessesData?.data ?? []);
 
             } catch (err) {
                 console.error("Failed to fetch location data:", err);

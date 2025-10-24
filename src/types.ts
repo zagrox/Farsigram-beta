@@ -10,6 +10,7 @@ export enum Page {
   Map,
   Business,
   Search,
+  Chat,
 }
 
 export enum Theme {

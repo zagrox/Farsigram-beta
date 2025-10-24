@@ -1,5 +1,7 @@
 {
   "name": "Farsigram 0.48",
   "description": "",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "microphone"
+  ]
 }

@@ -58,9 +58,9 @@ const RelatedInfluencers: React.FC<RelatedInfluencersProps> = ({ currentInfluenc
             const categoriesData = await categoriesRes.json();
             const locationsData = await locationsRes.json();
 
-            setCategories(categoriesData.data.map((c: { id: number; category_parent: string }) => ({ id: c.id, name: c.category_parent })));
+            setCategories((categoriesData?.data ?? []).map((c: { id: number; category_parent: string }) => ({ id: c.id, name: c.category_parent })));
             
-            const farsigramLocations: {id: number, country_persian: string, country: string}[] = locationsData.data;
+            const farsigramLocations: {id: number, country_persian: string, country: string}[] = locationsData?.data ?? [];
             const detailPromises = farsigramLocations.map(loc =>
                 fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
             );
@@ -143,7 +143,7 @@ const RelatedInfluencers: React.FC<RelatedInfluencersProps> = ({ currentInfluenc
             const res = await fetch(query);
             if (res.ok) {
                 const data = await res.json();
-                enrichAndAdd(data.data);
+                enrichAndAdd(data?.data ?? []);
             }
         } catch (err) {
             console.warn(`Failed to fetch with filter: ${filter}`, err);

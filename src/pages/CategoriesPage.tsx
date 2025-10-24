@@ -69,7 +69,7 @@ const CategoriesPage: React.FC<CategoriesPageProps> = ({ onSelectNetwork, onSele
         }
         const data = await response.json();
         
-        const publishedCategories: ApiCategory[] = data.data.filter(
+        const publishedCategories: ApiCategory[] = (data?.data ?? []).filter(
           (cat: ApiCategory) => cat.status === 'published'
         );
 
@@ -109,7 +109,7 @@ const CategoriesPage: React.FC<CategoriesPageProps> = ({ onSelectNetwork, onSele
             throw new Error('Network response was not ok for audiences');
           }
           const data = await response.json();
-          const publishedAudiences: ApiAudience[] = data.data.filter(
+          const publishedAudiences: ApiAudience[] = (data?.data ?? []).filter(
             (aud: ApiAudience) => aud.status === 'published'
           );
           setAudiences(publishedAudiences);
@@ -130,7 +130,7 @@ const CategoriesPage: React.FC<CategoriesPageProps> = ({ onSelectNetwork, onSele
                 throw new Error('Network response was not ok for socials');
             }
             const data = await response.json();
-            const allSocialLinks: { social_network: string }[] = data.data;
+            const allSocialLinks: { social_network: string }[] = data?.data ?? [];
             const uniqueNetworks = [...new Set(allSocialLinks.map(s => s.social_network).filter(Boolean))];
             setSocials(uniqueNetworks);
         } catch (err) {

@@ -87,7 +87,7 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                 // Process Audience Details
                 if (!audienceRes.ok) throw new Error('Could not fetch audience details');
                 const audienceData = await audienceRes.json();
-                setAudience(audienceData.data);
+                setAudience(audienceData?.data);
 
                 // Process Influencers
                 if (!influencersRes.ok || !categoriesRes.ok || !locationsRes.ok) {
@@ -96,9 +96,9 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                 const influencersData = await influencersRes.json();
                 const categoriesData = await categoriesRes.json();
                 const locationsData = await locationsRes.json();
-                const categoriesMap = new Map<number, string>(categoriesData.data.map((c: Category) => [c.id, c.category_parent]));
+                const categoriesMap = new Map<number, string>((categoriesData?.data ?? []).map((c: Category) => [c.id, c.category_parent]));
                 
-                const farsigramLocations: Location[] = locationsData.data;
+                const farsigramLocations: Location[] = locationsData?.data ?? [];
                 const detailPromises = farsigramLocations.map(loc =>
                     fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
                 );
@@ -112,7 +112,7 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                     }];
                 }));
                 
-                const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => {
+                const enrichedInfluencers = (influencersData?.data ?? []).map((inf: Influencer): EnrichedInfluencer => {
                     const locationInfo = locationsMap.get(inf.influencer_location);
                     const locationName = i18n.language === 'fa' 
                         ? (locationInfo?.persian || 'N/A') 
@@ -138,12 +138,12 @@ const AudienceDetailsPage: React.FC<AudienceDetailsPageProps> = ({ audienceId, o
                 // Process Campaigns
                 if (!campaignsRes.ok) throw new Error(t('error_loading_campaigns_for_audience'));
                 const campaignsData = await campaignsRes.json();
-                setCampaigns(campaignsData.data);
+                setCampaigns(campaignsData?.data ?? []);
 
                 // Process Businesses
                 if (!businessesRes.ok) throw new Error(t('error_loading_businesses_for_audience'));
                 const businessesData = await businessesRes.json();
-                setBusinesses(businessesData.data);
+                setBusinesses(businessesData?.data ?? []);
 
             } catch (err: any) {
                 console.error("Failed to fetch audience data:", err);

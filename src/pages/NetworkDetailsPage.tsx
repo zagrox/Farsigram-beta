@@ -99,9 +99,9 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                 const influencersData = await influencersRes.json();
                 const categoriesData = await categoriesRes.json();
                 const locationsData = await locationsRes.json();
-                const categoriesMap = new Map<number, string>(categoriesData.data.map((c: Category) => [c.id, c.category_parent]));
+                const categoriesMap = new Map<number, string>((categoriesData?.data ?? []).map((c: Category) => [c.id, c.category_parent]));
                 
-                const farsigramLocations: Location[] = locationsData.data;
+                const farsigramLocations: Location[] = locationsData?.data ?? [];
                 const detailPromises = farsigramLocations.map(loc =>
                     fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
                 );
@@ -115,7 +115,7 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                     }];
                 }));
         
-                const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => {
+                const enrichedInfluencers = (influencersData?.data ?? []).map((inf: Influencer): EnrichedInfluencer => {
                     const locationInfo = locationsMap.get(inf.influencer_location);
                     const locationName = i18n.language === 'fa' 
                         ? (locationInfo?.persian || 'N/A') 
@@ -141,12 +141,12 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                 // Process Campaigns
                 if (!campaignsRes.ok) throw new Error(t('error_loading_campaigns'));
                 const campaignsData = await campaignsRes.json();
-                setCampaigns(campaignsData.data);
+                setCampaigns(campaignsData?.data ?? []);
                 
                 // Process Businesses
                 if (!businessesRes.ok) throw new Error(t('error_loading_businesses_on_network'));
                 const businessesData = await businessesRes.json();
-                setBusinesses(businessesData.data);
+                setBusinesses(businessesData?.data ?? []);
                 
             } catch (err: any) {
                 console.error("Failed to fetch network data:", err);
@@ -203,7 +203,7 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                                 <CompactInfluencerCard key={influencer.id} influencer={influencer} onSelectInfluencer={onSelectInfluencer} />
                             ))
                         ) : (
-                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_influencers_found')}</p>
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_influencers_found_on_network')}</p>
                         )}
                     </div>
                 </div>
@@ -212,14 +212,14 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('campaigns_on_network', { networkName })}</h2>
                     <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
-                         {loading ? (
+                        {loading ? (
                             Array.from({ length: 4 }).map((_, index) => <CompactCampaignCardSkeleton key={index} />)
                         ) : campaigns.length > 0 ? (
                             campaigns.map((campaign) => (
                                 <CompactCampaignCard key={campaign.id} campaign={campaign} onSelectCampaign={onSelectCampaign} />
                             ))
                         ) : (
-                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found')}</p>
+                            <p className="text-center text-neutral-500 dark:text-neutral-400 py-8">{t('no_campaigns_found_on_network')}</p>
                         )}
                     </div>
                 </div>
@@ -228,8 +228,8 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
                 <div className="bg-white dark:bg-neutral-800/50 rounded-xl shadow-md p-6 flex flex-col h-full">
                     <h2 className="text-xl font-bold mb-4 text-neutral-800 dark:text-neutral-200">{t('businesses_on_network', { networkName })}</h2>
                     <div className="space-y-3 overflow-y-auto no-scrollbar flex-grow pr-2">
-                         {loading ? (
-                            Array.from({ length: 4 }).map((_, index) => <CompactBusinessCardSkeleton key={index} />)
+                        {loading ? (
+                            Array.from({ length: 3 }).map((_, index) => <CompactBusinessCardSkeleton key={index} />)
                         ) : businesses.length > 0 ? (
                             businesses.map((business) => (
                                 <CompactBusinessCard key={business.id} business={business} onSelectBusiness={onSelectBusiness} />
@@ -243,5 +243,5 @@ const NetworkDetailsPage: React.FC<NetworkDetailsPageProps> = ({ networkUrl, onB
         </div>
     );
 };
-
+// FIX: Add default export to resolve import error in App.tsx. Also completed the truncated JSX in the return statement.
 export default NetworkDetailsPage;

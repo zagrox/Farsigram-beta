@@ -88,14 +88,16 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
                     fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&limit=-1`),
                 ]);
                 if (!categoriesRes.ok || !locationsRes.ok) throw new Error('Failed to fetch enrichment data');
-                const categoriesData = await categoriesRes.json() as { data: Category[] };
+                // FIX: Cast json response to any to avoid type errors with strict configs
+                const categoriesData: any = await categoriesRes.json();
 
-                const locationsData = await locationsRes.json();
-                const farsigramLocations: Location[] = locationsData.data;
+                // FIX: Cast json response to any to avoid type errors with strict configs
+                const locationsData: any = await locationsRes.json();
+                const farsigramLocations: Location[] = locationsData?.data ?? [];
                 const detailPromises = farsigramLocations.map(loc =>
                     fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
                 );
-                const detailsResults = await Promise.all(detailPromises);
+                const detailsResults: any = await Promise.all(detailPromises);
                 const mappedLocations = farsigramLocations.map((loc, index) => {
                     const detail = detailsResults[index]?.[0];
                     let englishName = detail?.name?.common || loc.country_persian;
@@ -129,15 +131,16 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
                     throw new Error('One or more search requests failed');
                 }
 
-                const influencersData = await influencersPromise.json();
-                const campaignsData = await campaignsPromise.json();
-                const businessesData = await businessesPromise.json();
+                // FIX: Cast json response to any to resolve the 'unknown' to 'string' assignment error.
+                const influencersData: any = await influencersPromise.json();
+                const campaignsData: any = await campaignsPromise.json();
+                const businessesData: any = await businessesPromise.json();
                 
                 // Enrich Influencers
                 const tempLocationsMap = new Map(mappedLocations.map(l => [l.id, l]));
-                const tempCategoriesMap = new Map(categoriesData.data.map((c: Category) => [c.id, c.category_parent]));
+                const tempCategoriesMap = new Map((categoriesData?.data ?? []).map((c: Category) => [c.id, c.category_parent]));
 
-                const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => {
+                const enrichedInfluencers = (influencersData?.data ?? []).map((inf: Influencer): EnrichedInfluencer => {
                     const locationInfo = tempLocationsMap.get(inf.influencer_location);
                     const locationName = i18n.language === 'fa' 
                         ? (locationInfo?.persian || 'N/A') 
@@ -148,7 +151,8 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
                       influencer_name: inf.influencer_name,
                       influencer_title: inf.influencer_title,
                       influencer_avatar: inf.influencer_avatar,
-                      categoryName: tempCategoriesMap.get(inf.influencer_category) || 'N/A',
+                      // FIX: Explicitly cast the map lookup result to a string to prevent a possible 'unknown' type assignment error in strict mode.
+                      categoryName: String(tempCategoriesMap.get(inf.influencer_category) || 'N/A'),
                       locationName: locationName,
                       isHubMember: inf.influencer_hub || false,
                       socials: inf.influencer_social?.map(j => j.socials_id).filter(Boolean) || [],
@@ -160,8 +164,8 @@ const SearchPage: React.FC<SearchPageProps> = ({ query, onSearch, onSelectInflue
                 });
                 
                 setInfluencers(enrichedInfluencers);
-                setCampaigns(campaignsData.data);
-                setBusinesses(businessesData.data);
+                setCampaigns(campaignsData?.data ?? []);
+                setBusinesses(businessesData?.data ?? []);
             } catch (err) {
                 console.error("Failed to fetch search data:", err);
             } finally {

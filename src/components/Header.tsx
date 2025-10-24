@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Theme, Page } from '../types';
-import { SunIcon, MoonIcon, SearchIcon, CampaignIcon, InfluencersIcon, BusinessIcon } from './Icons';
+import { SunIcon, MoonIcon, SearchIcon, CampaignIcon, InfluencersIcon, BusinessIcon, MessageIcon } from './Icons';
 import Input from './ui/Input';
 import { API_BASE_URL, ASSETS_URL } from '../constants';
 
@@ -10,6 +10,7 @@ interface HeaderProps {
   setTheme: (theme: Theme) => void;
   currentPage: Page;
   onSearch: (query: string) => void;
+  onNavigate: (page: Page) => void;
 }
 
 type SuggestionType = 'campaign' | 'influencer' | 'business';
@@ -21,6 +22,7 @@ interface Suggestion {
   slogan?: string;
 }
 
+// FIX: Add missing Page.Chat to pageInfo record.
 const pageInfo: Record<Page, { ns: string; titleKey: string }> = {
   [Page.Home]: { ns: 'home', titleKey: 'title' },
   [Page.Campaigns]: { ns: 'campaigns', titleKey: 'title' },
@@ -33,10 +35,11 @@ const pageInfo: Record<Page, { ns: string; titleKey: string }> = {
   [Page.Influencers]: { ns: 'influencers', titleKey: 'title' },
   [Page.Business]: { ns: 'business', titleKey: 'title' },
   [Page.Search]: { ns: 'search', titleKey: 'title' },
+  [Page.Chat]: { ns: 'chat', titleKey: 'title' },
 };
 
 
-const Header: React.FC<HeaderProps> = ({ theme, setTheme, currentPage, onSearch }) => {
+const Header: React.FC<HeaderProps> = ({ theme, setTheme, currentPage, onSearch, onNavigate }) => {
   const { ns, titleKey } = pageInfo[currentPage];
   const { t, i18n } = useTranslation([ns, 'common']);
   
@@ -71,13 +74,13 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, currentPage, onSearch 
         const influencerData = await influencerRes.json();
         const businessData = await businessRes.json();
 
-        const campaignSuggestions: Suggestion[] = campaignData.data.map((item: any) => ({
+        const campaignSuggestions: Suggestion[] = (campaignData?.data ?? []).map((item: any) => ({
             id: item.id, name: item.campaign_title, type: 'campaign', image: item.campaign_image
         }));
-        const influencerSuggestions: Suggestion[] = influencerData.data.map((item: any) => ({
+        const influencerSuggestions: Suggestion[] = (influencerData?.data ?? []).map((item: any) => ({
             id: item.id, name: item.influencer_name, type: 'influencer', image: item.influencer_avatar, slogan: item.influencer_title
         }));
-        const businessSuggestions: Suggestion[] = businessData.data.map((item: any) => ({
+        const businessSuggestions: Suggestion[] = (businessData?.data ?? []).map((item: any) => ({
             id: item.id, name: item.business_name, type: 'business', image: item.business_logo, slogan: item.business_slogan
         }));
 
@@ -255,6 +258,15 @@ const Header: React.FC<HeaderProps> = ({ theme, setTheme, currentPage, onSearch 
           )}
         </div>
         
+        <button
+          onClick={() => onNavigate(Page.Chat)}
+          className={`p-2 rounded-full transition-colors ${currentPage === Page.Chat ? 'bg-primary/10 text-primary dark:bg-primary/20' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400'}`}
+          title={t('common:ai_assistant')}
+          aria-label={t('common:ai_assistant')}
+        >
+          <MessageIcon className="h-6 w-6" />
+        </button>
+
         <button
           onClick={toggleTheme}
           className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400 transition-colors"

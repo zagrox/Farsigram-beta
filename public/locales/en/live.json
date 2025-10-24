@@ -1,0 +1,15 @@
+{
+  "title": "Live Conversation",
+  "start_button": "Start Conversation",
+  "stop_button": "Stop Conversation",
+  "status_idle": "Ready to start",
+  "status_connecting": "Connecting...",
+  "status_connected": "Connected. You can speak now.",
+  "status_closing": "Disconnecting...",
+  "status_closed": "Disconnected",
+  "status_error": "An error occurred. Please try again.",
+  "you": "You",
+  "model": "Assistant",
+  "initial_prompt": "Hello! I am Farsigram's helpful assistant and I can speak both English and Farsi. You can ask me to find influencers, campaigns, or businesses. For example, try 'Search for technology influencers'. After a search, you can ask for more details about a specific person or item.",
+  "mic_error": "Could not access microphone. Please check your browser permissions."
+}

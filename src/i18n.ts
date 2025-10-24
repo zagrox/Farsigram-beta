@@ -23,6 +23,7 @@ i18n
       'map',
       'business',
       'search',
+      'chat',
     ],
     defaultNS: 'common',
     backend: {

@@ -20,8 +20,11 @@ import InfluencerDetailsPage from './pages/InfluencerDetailsPage';
 import BusinessPage from './pages/BusinessPage';
 import BusinessDetailsPage from './pages/BusinessDetailsPage';
 import SearchPage from './pages/SearchPage';
+import ChatPage from './pages/ChatPage';
 import i18n from './i18n';
 import { Layout } from './components/ui/LayoutSwitcher';
+import { Content } from '@google/genai';
+import { SearchResultItem } from './components/ui/ChatSearchResultCard';
 
 const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -47,6 +50,11 @@ const App: React.FC = () => {
   const [sharedLayout, setSharedLayout] = useState<Layout>(() => {
     return (localStorage.getItem('sharedLayout') as Layout) || 'card';
   });
+
+  // State for persistent chat
+  const [chatHistory, setChatHistory] = useState<Content[]>([]);
+  const [chatSearchResults, setChatSearchResults] = useState<Record<number, SearchResultItem[]>>({});
+
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -348,6 +356,23 @@ const App: React.FC = () => {
         />;
       case Page.Marketplace:
         return <MarketplacePage />;
+      case Page.Chat:
+        return <ChatPage 
+          history={chatHistory}
+          setHistory={setChatHistory}
+          searchResults={chatSearchResults}
+          setSearchResults={setChatSearchResults}
+          onNavigate={(page, id, type) => {
+            if (type === 'influencer') {
+              setViewingInfluencerId(id);
+            } else if (type === 'campaign') {
+              setViewingCampaignId(id);
+            } else if (type === 'business') {
+              setViewingBusinessId(id);
+            }
+            setCurrentPage(page);
+          }}
+        />;
       case Page.Profile:
         return <ProfilePage setTheme={setThemeAndStore} setSystemTheme={setSystemTheme} />;
       case Page.Search:
@@ -408,6 +433,7 @@ const App: React.FC = () => {
           setTheme={setThemeAndStore}
           currentPage={currentPage}
           onSearch={handleSearch}
+          onNavigate={setCurrentPage}
         />
         <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
           {renderPage()}

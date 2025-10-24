@@ -101,10 +101,10 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
                 const audiencesData = await audiencesRes.json();
                 const socialsData = await socialsRes.json();
 
-                setCategories(categoriesData.data.map((c: ApiCategory) => ({ id: c.id, name: c.category_parent })));
-                setAudiences(audiencesData.data.map((a: ApiAudience) => ({ id: a.id, name: a.audience_title })));
+                setCategories((categoriesData?.data ?? []).map((c: ApiCategory) => ({ id: c.id, name: c.category_parent })));
+                setAudiences((audiencesData?.data ?? []).map((a: ApiAudience) => ({ id: a.id, name: a.audience_title })));
 
-                const allSocialLinks: { social_network: string }[] = socialsData.data;
+                const allSocialLinks: { social_network: string }[] = socialsData?.data ?? [];
                 const uniqueNetworks = [...new Set(allSocialLinks.map(s => s.social_network).filter(Boolean))];
                 setSocialNetworks(uniqueNetworks.map(url => ({ id: url, name: getSocialNetworkName(url) })));
 
@@ -162,7 +162,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
                 const influencersData = await influencersRes.json();
                 const locationsData = await locationsRes.json();
         
-                const farsigramLocations: Location[] = locationsData.data;
+                const farsigramLocations: Location[] = locationsData?.data ?? [];
                 const detailPromises = farsigramLocations.map(loc =>
                     fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
                 );
@@ -180,7 +180,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
                     }];
                 }));
         
-                const enrichedInfluencers = influencersData.data.map((inf: Influencer): EnrichedInfluencer => {
+                const enrichedInfluencers = (influencersData?.data ?? []).map((inf: Influencer): EnrichedInfluencer => {
                     const locationInfo = locationsMap.get(inf.influencer_location);
                     const locationName = i18n.language === 'fa' 
                         ? (locationInfo?.persian || 'N/A') 
@@ -246,7 +246,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
                   throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                setCampaigns(data.data);
+                setCampaigns(data?.data ?? []);
             } catch (err) {
                 console.error("Failed to fetch filtered campaigns:", err);
             } finally {
@@ -290,7 +290,7 @@ const ExplorePage: React.FC<ExplorePageProps> = ({ onSelectInfluencer, onSelectC
                   throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                setBusinesses(data.data);
+                setBusinesses(data?.data ?? []);
             } catch (err) {
                 console.error("Failed to fetch filtered businesses:", err);
             } finally {

@@ -118,7 +118,10 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
         if (!campaignRes.ok) throw new Error('Campaign not found');
         
         const campaignData = await campaignRes.json();
-        const camp: Campaign = campaignData.data;
+        const camp: Campaign | null = campaignData?.data;
+        if (!camp) {
+            throw new Error('Campaign data is missing in API response');
+        }
         setCampaign(camp);
 
         const socials: SocialProfile[] = camp.campaign_social?.map(item => item.socials_id).filter(Boolean) || [];
@@ -136,8 +139,9 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
                     return [];
                 }
                 const data = await res.json();
-                if (data && Array.isArray(data.data)) {
-                    return data.data.map((item: any) => ({ id: item.id, name: item[nameKey] || `ID: ${item.id}` }));
+                const items = data?.data;
+                if (Array.isArray(items)) {
+                    return items.map((item: any) => ({ id: item.id, name: item[nameKey] || `ID: ${item.id}` }));
                 }
                 return [];
             } catch (error) {
@@ -152,7 +156,7 @@ const CampaignDetailsPage: React.FC<CampaignDetailsPageProps> = ({ campaignId, o
                 const locRes = await fetch(`${API_BASE_URL}/items/locations?fields=id,country,country_persian&filter[id][_in]=${ids.join(',')}`);
                 if (!locRes.ok) return [];
                 const locData = await locRes.json();
-                const farsigramLocations: {id: number, country_persian: string, country: string}[] = locData.data;
+                const farsigramLocations: {id: number, country_persian: string, country: string}[] = locData?.data ?? [];
 
                 const detailPromises = farsigramLocations.map(loc =>
                     fetch(`https://restcountries.com/v3.1/alpha/${loc.country}`).then(res => res.ok ? res.json() : null)
